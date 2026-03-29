@@ -1,112 +1,161 @@
+
+// ==========================================
+// 1. DAFTAR MIKROKONTROLER (PAPAN UTAMA)
+// ==========================================
 export const BOARD_PINS: Record<string, string[]> = {
-  "Arduino Uno": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3", "A4", "A5"],
-  "Arduino Nano": ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"],
-  "Arduino Mega": Array.from({length: 54}, (_, i) => i.toString()).concat(Array.from({length: 16}, (_, i) => `A${i}`)),
-  "ESP32": ["2", "4", "5", "12", "13", "14", "15", "18", "19", "21", "22", "23", "25", "26", "27", "32", "33", "34", "35", "36", "39"],
-  "ESP8266": ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"]
+  // --- KELUARGA ARDUINO (AVR Classic) ---
+  "Arduino Uno R3": ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3", "A4", "A5"],
+  "Arduino Nano V3": ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7"],
+  "Arduino Mega 2560": [
+    "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", 
+    "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", "50", "51", "52", "53",
+    "A0", "A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14", "A15"
+  ],
+  "Arduino Pro Mini": ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3"],
+  "Arduino Leonardo": ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "A0", "A1", "A2", "A3", "A4", "A5"],
+
+  // --- KELUARGA ESP (Internet of Things) ---
+  "NodeMCU ESP8266 (v2/v3)": ["D0", "D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"],
+  "Wemos D1 Mini (ESP8266)": ["D1", "D2", "D3", "D4", "D5", "D6", "D7", "D8"],
+  "ESP32 DEVKIT V1 (30 Pin)": ["2", "4", "5", "12", "13", "14", "15", "18", "19", "21", "22", "23", "25", "26", "27", "32", "33", "34", "35"],
+  "ESP32 CAM": ["2", "4", "12", "13", "14", "15"], // Pin yang aman dipakai saat kamera aktif
+
+  // --- KELUARGA MODERN (ARM / Lainnya) ---
+  "Raspberry Pi Pico (RP2040)": [
+    "GP0", "GP1", "GP2", "GP3", "GP4", "GP5", "GP6", "GP7", "GP8", "GP9", "GP10", "GP11", "GP12", "GP13", "GP14", "GP15", 
+    "GP16", "GP17", "GP18", "GP19", "GP20", "GP21", "GP22", "GP26", "GP27", "GP28"
+  ],
+  "STM32 Blue Pill": ["PA0", "PA1", "PA2", "PA3", "PA4", "PA5", "PA6", "PA7", "PB0", "PB1", "PB10", "PB11", "PC13"]
 };
 
-// PERBAIKAN: Menambahkan Arah Arus (_in, _out, _io)
+// ==========================================
+// 2. DAFTAR SENSOR (INPUT)
+// ==========================================
 export const SENSORS_DB = [
-  { name: "HC-SR04 Ultrasonic", pins: 2, pinTypes: ['digital_out', 'digital_in'], lib: "None", init: (v:any, p1:any, p2:any) => `#define TRIG_${v} ${p1}\n#define ECHO_${v} ${p2}`, read: (v:any) => `getDistance(TRIG_${v}, ECHO_${v})` },
-  { name: "DHT22 (Suhu)", pins: 1, pinTypes: ['digital_io'], lib: "DHT sensor library", init: (v:any, p:any) => `DHT dht_${v}(${p}, DHT22);`, read: (v:any) => `dht_${v}.readTemperature()` },
-  { name: "MQ-2 Smoke/Gas", pins: 1, pinTypes: ['analog_in'], lib: "None", init: (v:any, p:any) => `#define SMOKE_${v} ${p}`, read: (v:any) => `analogRead(SMOKE_${v})` },
-  { name: "RC522 RFID", pins: 5, pinTypes: ['digital_out', 'digital_in', 'digital_out', 'digital_out', 'digital_out'], lib: "MFRC522", init: (v:any) => `MFRC522 rfid_${v}(SS_PIN, RST_PIN);`, read: (v:any) => `rfid_${v}.PICC_IsNewCardPresent()` },
-  { name: "LDR (Cahaya)", pins: 1, pinTypes: ['analog_in'], lib: "None", init: (v:any, p:any) => `#define LDR_${v} ${p}`, read: (v:any) => `analogRead(LDR_${v})` }
+  // --- Sensor Robotika Dasar ---
+  {
+    name: "Ultrasonik (HC-SR04)",
+    pinTypes: ["digital", "digital"], // Butuh 2 pin: Trig & Echo
+    lib: "None"
+  },
+  {
+    name: "Infrared (Line Follower)",
+    pinTypes: ["digital"],
+    lib: "None"
+  },
+  // --- Sensor Lingkungan & Pertanian ---
+  {
+    name: "Suhu & Kelembaban (DHT11/DHT22)",
+    pinTypes: ["digital"],
+    lib: "DHT.h"
+  },
+  {
+    name: "Kelembaban Tanah (Soil Moisture)",
+    pinTypes: ["analog"],
+    lib: "None"
+  },
+  {
+    name: "Cahaya (LDR)",
+    pinTypes: ["analog"],
+    lib: "None"
+  },
+  {
+    name: "Gas & Asap (MQ-2)",
+    pinTypes: ["analog"],
+    lib: "None"
+  },
+  // --- Sensor Keamanan ---
+  {
+    name: "Gerak (PIR)",
+    pinTypes: ["digital"],
+    lib: "None"
+  },
+  {
+    name: "RFID Reader (RC522)",
+    pinTypes: ["digital", "digital", "digital", "digital"], // SDA, SCK, MOSI, MISO (Contoh penyederhanaan pin SPI)
+    lib: "MFRC522.h"
+  },
+  // --- Sensor Mekanik ---
+  {
+    name: "Push Button / Limit Switch",
+    pinTypes: ["digital"],
+    lib: "None"
+  }
 ];
 
+// ==========================================
+// 3. DAFTAR AKTUATOR (OUTPUT)
+// ==========================================
 export const ACTUATORS_DB = [
-  { name: "Servo SG90", pins: 1, pinTypes: ['pwm_out'], lib: "Servo", init: (v:any) => `Servo servo_${v};`, setup: (v:any, p:any) => `servo_${v}.attach(${p});`, action: (v:any, val:any) => `servo_${v}.write(${val});` },
-  { name: "Kunci Solenoid", pins: 1, pinTypes: ['digital_out'], lib: "None", init: (v:any, p:any) => `#define LOCK_${v} ${p}`, action: (v:any, st:any) => `digitalWrite(LOCK_${v}, ${st});` },
-  { name: "I2C LCD 16x2", pins: 2, pinTypes: ['i2c_io', 'i2c_io'], lib: "LiquidCrystal I2C", init: (v:any) => `LiquidCrystal_I2C lcd_${v}(0x27, 16, 2);`, setup: (v:any) => `lcd_${v}.init();`, action: (v:any, val:any) => `lcd_${v}.print(${val});` },
-  { name: "Relay 5V", pins: 1, pinTypes: ['digital_out'], lib: "None", init: (v:any, p:any) => `#define RELAY_${v} ${p}`, action: (v:any, st:any) => `digitalWrite(RELAY_${v}, ${st});` },
-  { name: "Buzzer Aktif", pins: 1, pinTypes: ['digital_out'], lib: "None", init: (v:any, p:any) => `#define BUZZER_${v} ${p}`, action: (v:any, st:any) => `digitalWrite(BUZZER_${v}, ${st});` }
+  // --- Penggerak / Motor ---
+  {
+    name: "Driver Motor (L298N)",
+    pinTypes: ["digital", "digital", "pwm", "digital", "digital", "pwm"], // IN1, IN2, ENA, IN3, IN4, ENB
+    lib: "None"
+  },
+  {
+    name: "Driver Stepper (A4988)",
+    pinTypes: ["digital", "digital"], // STEP & DIR
+    lib: "None"
+  },
+  {
+    name: "Motor Servo (SG90/MG996R)",
+    pinTypes: ["pwm"],
+    lib: "Servo.h"
+  },
+  // --- Saklar Listrik / Irigasi ---
+  {
+    name: "Relay 5V (1 Channel)",
+    pinTypes: ["digital"],
+    lib: "None"
+  },
+  {
+    name: "Pompa Air Mini 5V",
+    pinTypes: ["digital"], // Biasanya dikendalikan lewat Relay atau Transistor
+    lib: "None"
+  },
+  {
+    name: "Kunci Solenoid 12V",
+    pinTypes: ["digital"], // Sama, butuh Relay
+    lib: "None"
+  },
+  // --- Indikator Visual & Suara ---
+  {
+    name: "Lampu LED",
+    pinTypes: ["digital"],
+    lib: "None"
+  },
+  {
+    name: "Buzzer Aktif",
+    pinTypes: ["digital"],
+    lib: "None"
+  },
+  {
+    name: "Layar LCD 16x2 (I2C)",
+    pinTypes: ["digital", "digital"], // SDA & SCL
+    lib: "LiquidCrystal_I2C.h"
+  }
 ];
 
-export const isPinSupported = (board: string, pin: string, reqType: string) => {
-  // Aturan Keras: Pin Input Only ESP32 (34, 35, 36, 39)
-  const isInputOnlyESP32 = board === 'ESP32' && ["34","35","36","39"].includes(pin);
-
-  // Jika butuh Output atau Bidirectional (I/O), tapi pakai pin Input Only -> Jangan Munculkan!
-  if (isInputOnlyESP32 && (reqType.includes('_out') || reqType.includes('_io'))) {
-      return false; 
-  }
-
-  if (reqType.startsWith('analog')) {
-     if (board.startsWith('Arduino')) return pin.startsWith('A');
-     if (board === 'ESP8266') return pin === 'A0';
-     if (board === 'ESP32') return ["32","33","34","35","36","39","25","26","27","14","12","13"].includes(pin);
-  }
-  if (reqType.startsWith('pwm')) {
-     if (board === 'Arduino Uno' || board === 'Arduino Nano') return ['3','5','6','9','10','11'].includes(pin);
-     if (board === 'Arduino Mega') return ['2','3','4','5','6','7','8','9','10','11','12','13','44','45','46'].includes(pin);
-     return true; // ESP dukung PWM software di semua pin output
-  }
-  if (reqType.startsWith('i2c')) {
-     if (board === 'Arduino Uno' || board === 'Arduino Nano') return ['A4', 'A5'].includes(pin);
-     if (board === 'ESP8266') return ['D1', 'D2'].includes(pin);
-     if (board === 'ESP32') return ['21', '22'].includes(pin);
-  }
-  return true; 
-};
-
-export const getPinWarning = (board: string, pin: string, kind: string) => {
-  if (board === "ESP8266") {
-      if (pin === "D3") return "⚠️ D3 (GPIO0): Berisiko ganggu booting jika LOW.";
-      if (pin === "D4") return "⚠️ D4 (GPIO2): HIGH saat boot (LED Built-in).";
-      if (pin === "D8") return "⚠️ D8 (GPIO15): HARUS tetap LOW saat booting!";
-  }
-  if (board === "ESP32") {
-      if (["6","7","8","9","10","11"].includes(pin)) return "⚠️ BACA FLASH MEMORY! Jangan gunakan pin ini.";
-      if (["0","2","5","12","15"].includes(pin)) return "⚠️ Pin Strapping: Bisa menyebabkan gagal boot.";
-  }
-  return null;
-};
-
-// Cari bagian WIRING_MAP di constants.ts dan timpa dengan ini:
-export const WIRING_MAP: Record<string, { label: string, type: 'vcc' | 'gnd' | 'data', color: string }[]> = {
-  "HC-SR04 Ultrasonic": [
-    { label: "VCC", type: 'vcc', color: "bg-red-500" },
-    { label: "TRIG", type: 'data', color: "bg-orange-400" },
-    { label: "ECHO", type: 'data', color: "bg-yellow-400" },
-    { label: "GND", type: 'gnd', color: "bg-slate-600" }
-  ],
-  "DHT22 (Suhu)": [
-    { label: "VCC", type: 'vcc', color: "bg-red-500" },
-    { label: "DATA", type: 'data', color: "bg-blue-400" },
-    { label: "NC", type: 'gnd', color: "bg-transparent" }, // Pin kosong
-    { label: "GND", type: 'gnd', color: "bg-slate-600" }
-  ],
-  "MQ-2 Smoke/Gas": [
-    { label: "VCC", type: 'vcc', color: "bg-red-500" },
-    { label: "GND", type: 'gnd', color: "bg-slate-600" },
-    { label: "D0", type: 'data', color: "bg-slate-500" },
-    { label: "A0", type: 'data', color: "bg-cyan-400" }
-  ],
-  "Servo SG90": [
-    { label: "PWM (Oranye)", type: 'data', color: "bg-orange-500" },
-    { label: "VCC (Merah)", type: 'vcc', color: "bg-red-500" },
-    { label: "GND (Cokelat)", type: 'gnd', color: "bg-amber-900" }
-  ],
-  "I2C LCD 16x2": [
-    { label: "GND", type: 'gnd', color: "bg-slate-600" },
-    { label: "VCC", type: 'vcc', color: "bg-red-500" },
-    { label: "SDA", type: 'data', color: "bg-emerald-400" },
-    { label: "SCL", type: 'data', color: "bg-emerald-500" }
-  ]
-};
-
-// Pastikan fungsi helper ini ada
-export const getWireColorClass = (color: string) => color || "bg-cyan-500";
-
-export const getBadgeStyle = (type: string, isActuator: boolean) => {
-    if(type === 'vcc') return "bg-red-500/20 text-red-400 border-red-500/50";
-    if(type === 'gnd') return "bg-slate-700/50 text-slate-300 border-slate-600";
-    return isActuator ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/50" : "bg-cyan-500/20 text-cyan-400 border-cyan-500/50";
-};
-
-export const getWireColor = (type: string, isActuator: boolean) => {
-    if(type === 'vcc') return "bg-red-500/50";
-    if(type === 'gnd') return "bg-slate-500/50";
-    return isActuator ? "bg-emerald-500/50" : "bg-cyan-500/50";
+// ==========================================
+// 4. LOGIKA PENGECEKAN PIN
+// ==========================================
+export const isPinSupported = (board: string, pin: string, type: string) => {
+    // Jika komponen butuh pin Analog, pastikan pinnya berawalan huruf 'A' (kecuali untuk ESP)
+    if (type === 'analog' && !board.includes("ESP")) return pin.startsWith('A');
+    
+    // Jika komponen butuh pin PWM, pastikan masuk daftar pin bergelombang (~) untuk Arduino
+    if (type === 'pwm') {
+      if (board === "Arduino Uno R3" || board === "Arduino Nano") {
+        return ["3", "5", "6", "9", "10", "11"].includes(pin);
+      }
+      if (board === "Arduino Mega 2560") {
+        return ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "44", "45", "46"].includes(pin);
+      }
+      // ESP8266 dan ESP32 mendukung PWM di hampir semua pin digitalnya
+      return true; 
+    }
+    
+    // Pin Digital bisa dicolok di mana saja
+    return true; 
 };
