@@ -140,22 +140,31 @@ export const ACTUATORS_DB = [
 // ==========================================
 // 4. LOGIKA PENGECEKAN PIN
 // ==========================================
-export const isPinSupported = (board: string, pin: string, type: string) => {
-    // Jika komponen butuh pin Analog, pastikan pinnya berawalan huruf 'A' (kecuali untuk ESP)
-    if (type === 'analog' && !board.includes("ESP")) return pin.startsWith('A');
-    
-    // Jika komponen butuh pin PWM, pastikan masuk daftar pin bergelombang (~) untuk Arduino
-    if (type === 'pwm') {
-      if (board === "Arduino Uno R3" || board === "Arduino Nano") {
-        return ["3", "5", "6", "9", "10", "11"].includes(pin);
-      }
-      if (board === "Arduino Mega 2560") {
-        return ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "44", "45", "46"].includes(pin);
-      }
-      // ESP8266 dan ESP32 mendukung PWM di hampir semua pin digitalnya
-      return true; 
-    }
-    
-    // Pin Digital bisa dicolok di mana saja
-    return true; 
+// ==========================================
+// 5. PANDUAN KABEL (WIRING MAP)
+// ==========================================
+export const WIRING_MAP: Record<string, string> = {
+  // Sensor Dasar
+  "Ultrasonik (HC-SR04)": "VCC ke 5V, GND ke GND, Trig ke Pin Digital, Echo ke Pin Digital.",
+  "Infrared (Line Follower)": "VCC ke 5V, GND ke GND, OUT ke Pin Digital.",
+  "Suhu & Kelembaban (DHT11/DHT22)": "VCC ke 5V, GND ke GND, DATA ke Pin Digital.",
+  "Kelembaban Tanah (Soil Moisture)": "VCC ke 5V (atau 3.3V), GND ke GND, A0 ke Pin Analog.",
+  "Cahaya (LDR)": "Rangkai sebagai pembagi tegangan (voltage divider) dengan Resistor 10k ohm. Hubungkan titik tengah ke Pin Analog.",
+  "Gas & Asap (MQ-2)": "VCC ke 5V, GND ke GND, A0 ke Pin Analog.",
+  
+  // Keamanan
+  "Gerak (PIR)": "VCC ke 5V, GND ke GND, OUT ke Pin Digital.",
+  "RFID Reader (RC522)": "Hati-hati, gunakan tegangan 3.3V! SDA, SCK, MOSI, MISO ke pin SPI mikrokontroler.",
+  "Push Button / Limit Switch": "Gunakan Resistor Pull-up/Pull-down (10k ohm), atau aktifkan INPUT_PULLUP di kode. Hubungkan ke Pin Digital dan GND.",
+  
+  // Aktuator
+  "Driver Motor (L298N)": "12V/5V IN ke Baterai, GND ke GND (gabung dengan GND Arduino), IN1-IN4 ke Pin Digital, ENA/ENB ke Pin PWM.",
+  "Driver Stepper (A4988)": "VMOT ke sumber daya motor (misal 12V), VDD ke 5V Arduino, GND ke GND. STEP dan DIR ke Pin Digital.",
+  "Motor Servo (SG90/MG996R)": "Kabel Merah ke 5V, Coklat/Hitam ke GND, Kuning/Oranye ke Pin PWM.",
+  "Relay 5V (1 Channel)": "VCC ke 5V, GND ke GND, IN ke Pin Digital. Sisi terminal terhubung ke beban (misal pompa air).",
+  "Pompa Air Mini 5V": "Jangan hubungkan langsung ke pin Arduino! Gunakan modul Relay atau Transistor sebagai saklar.",
+  "Kunci Solenoid 12V": "Butuh power supply terpisah (12V) dan dikendalikan lewat Relay.",
+  "Lampu LED": "Kaki panjang (Anoda) ke Pin Digital (lewat Resistor 220 ohm), Kaki pendek (Katoda) ke GND.",
+  "Buzzer Aktif": "Kaki panjang (+) ke Pin Digital, Kaki pendek (-) ke GND.",
+  "Layar LCD 16x2 (I2C)": "VCC ke 5V, GND ke GND, SDA ke pin SDA (A4 pada Uno), SCL ke pin SCL (A5 pada Uno)."
 };
