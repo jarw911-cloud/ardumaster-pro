@@ -12,16 +12,20 @@ interface WiringViewerProps {
 export default function WiringViewer({ sensors, actuators, board, usedPins }: WiringViewerProps) {
   
   const renderModule = (el: any, isRight: boolean) => {
-    const wires = WIRING_MAP[el.type] || [
+    // 1. Ambil teks instruksi dari constants.ts
+    const wiringText = WIRING_MAP[el.type] || "Hubungkan pin sesuai dengan program.";
+    
+    // 2. Gunakan array ini khusus untuk menggambar jalur kabel secara visual
+    const visualWires = [
         { label: "VCC", type: 'vcc', color: 'bg-red-500' },
         { label: "DATA", type: 'data', color: 'bg-cyan-500' },
         { label: "GND", type: 'gnd', color: 'bg-slate-600' }
     ];
 
     return (
-      <div key={el.id} className="relative flex flex-col items-center group">
+      <div key={el.id} className="relative flex flex-col items-center group w-full max-w-[220px]">
         {/* Body Modul Fisik */}
-        <div className="bg-slate-800 border-b-4 border-slate-900 rounded-xl p-4 w-48 shadow-2xl transition-transform group-hover:-translate-y-1">
+        <div className="bg-slate-800 border-b-4 border-slate-900 rounded-xl p-4 w-full shadow-2xl transition-transform group-hover:-translate-y-1 relative z-10">
           {/* Ilustrasi Komponen (Cth: Ultrasonic Mata) */}
           {el.type.includes("HC-SR04") && (
             <div className="flex justify-around mb-4">
@@ -30,11 +34,16 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
             </div>
           )}
           
-          <div className="text-[10px] font-black text-white text-center uppercase mb-4 tracking-tighter opacity-80">{el.type}</div>
+          <div className="text-[10px] font-black text-white text-center uppercase mb-2 tracking-tighter opacity-80">{el.type}</div>
           
-          {/* Header Pin Modul */}
+          {/* TAMPILAN TEKS PANDUAN (BARU DITAMBAHKAN) */}
+          <div className="bg-black/50 p-2 rounded text-[9px] text-slate-400 text-center leading-relaxed mb-4 border border-white/5">
+             {wiringText}
+          </div>
+          
+          {/* Header Pin Modul Visual */}
           <div className="flex justify-center gap-1 bg-black/40 p-1.5 rounded-lg border border-white/5">
-            {wires.map((w, idx) => (
+            {visualWires.map((w, idx) => (
                <div key={idx} className="flex flex-col items-center gap-1">
                   <div className={`w-3 h-3 rounded-sm ${w.color} shadow-sm`}></div>
                   <span className="text-[7px] font-bold text-slate-500">{w.label.split(' ')[0]}</span>
@@ -45,14 +54,14 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
 
         {/* Jalur Kabel Keluar */}
         <div className={`flex flex-col ${isRight ? 'items-start -translate-x-10' : 'items-end translate-x-10'} mt-2 w-full`}>
-           {wires.map((w, idx) => {
+           {visualWires.map((w, idx) => {
              // Deteksi pin mana yang dipakai untuk label data
              let pinLabel = "";
              if (w.type === 'vcc') pinLabel = "5V / 3.3V";
              else if (w.type === 'gnd') pinLabel = "GND";
              else {
                 // Mapping pin data (Trig ke pin1, Echo ke pin2, dst)
-                const dataIdx = wires.filter((x, i) => x.type === 'data' && i <= idx).length;
+                const dataIdx = visualWires.filter((x, i) => x.type === 'data' && i <= idx).length;
                 pinLabel = dataIdx === 1 ? `Pin ${el.pin}` : `Pin ${el.pin2 || '?'}`;
              }
 

@@ -13,9 +13,14 @@ interface ElementCardProps {
 }
 
 export default function ElementCard({ el, allElements, board, usedPins, onUpdate, onRemove, onMove }: ElementCardProps) {
-  const dbConfig = el.kind === 'Sensor' ? SENSORS_DB.find(x => x.name === el.type) : ACTUATORS_DB.find(x => x.name === el.type);
-  const pinCount = dbConfig ? dbConfig.pins : 1;
-  const pinTypes = dbConfig?.pinTypes || ['digital_io'];
+  // 1. Ambil data konfigurasi komponen dari database (constants.ts)
+  const dbConfig = el.kind === 'Sensor' 
+    ? SENSORS_DB.find(x => x.name === el.type) 
+    : ACTUATORS_DB.find(x => x.name === el.type);
+
+  // 2. PERBAIKAN: Hitung jumlah pin berdasarkan panjang array `pinTypes`
+  const pinTypes = dbConfig?.pinTypes || ['digital']; // Default 1 pin digital
+  const pinCount = pinTypes.length;
 
   const getIcon = () => {
     if (el.kind === 'Sensor') return <Thermometer size={16} className="text-cyan-500" />;
@@ -61,27 +66,36 @@ export default function ElementCard({ el, allElements, board, usedPins, onUpdate
             <select value={el.type} onChange={e => onUpdate(el.id, { type: e.target.value })} className="bg-slate-900 p-2.5 rounded-xl text-xs font-bold outline-none text-slate-400 border border-white/5 w-full">
                {(el.kind === 'Sensor' ? SENSORS_DB : ACTUATORS_DB).map(x => <option key={x.name}>{x.name}</option>)}
             </select>
+            
+            {/* PERBAIKAN: Mapping berdasarkan pinCount yang baru */}
             <div className={`grid gap-3 ${pinCount > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
               {Array.from({ length: pinCount }).map((_, pIdx) => {
                   const pKey = pIdx === 0 ? 'pin' : `pin${pIdx + 1}`;
                   let label = `Pin ${pIdx + 1}`;
-                  if (el.type === "HC-SR04 Ultrasonic") label = pIdx === 0 ? "TRIG (Out)" : "ECHO (In)";
-                  const warningMsg = el[pKey] ? getPinWarning(board, el[pKey], el.kind) : null;
-                  const reqType = pinTypes[pIdx];
+                  
+                  // Label khusus untuk komponen tertentu (opsional, bisa ditambah nanti)
+                  if (el.type === "Ultrasonik (HC-SR04)") {
+                     label = pIdx === 0 ? "TRIG (Out)" : "ECHO (In)";
+                  }
 
+                  // Pengecekan Warning & Support
+                  const reqType = pinTypes[pIdx];
+                  const warningMsg = el[pKey] ? getPinWarning(board, el[pKey], reqType) : null;
+                  
                   return (
                     <div key={pKey} className="flex flex-col gap-1 w-full">
-                      <label className="text-[9px] font-black uppercase text-slate-500 pl-1">{label}</label>
+                      <label className="text-[9px] font-black uppercase text-slate-500 pl-1">{label} ({reqType})</label>
                       <select value={el[pKey] || ""} onChange={e => onUpdate(el.id, { [pKey]: e.target.value })} className="bg-slate-900 p-2.5 rounded-xl text-[10px] font-mono outline-none border border-white/5 text-cyan-500 w-full">
-                          <option value="" disabled>Pilih Pin...</option>
-                          {BOARD_PINS[board].map(p => {
-                            const isTaken = usedPins.some(up => up.pin === p && up.device !== el.name);
-                            const isSupported = isPinSupported(board, p, reqType);
-                            const isDisabled = isTaken || !isSupported;
-                            let optLabel = `P${p}${isTaken ? ' (Dipakai)' : !isSupported ? ' (Tdk Support)' : ''}`;
-                            return <option key={p} value={p} disabled={isDisabled} className={isDisabled ? 'text-slate-600 italic' : 'text-white'}>{optLabel}</option>
-                          })}
-                      </select>
+    <option value="" disabled>Pilih Pin...</option>
+    {/* INI BAGIAN YANG DIUBAH */}
+    {(BOARD_PINS[board] as string[])?.map(p => {
+      const isTaken = usedPins.some(up => up.pin === p && up.device !== el.name);
+      const isSupported = isPinSupported(board, p, reqType);
+      const isDisabled = isTaken || !isSupported;
+      let optLabel = `P${p}${isTaken ? ' (Dipakai)' : !isSupported ? ' (Tdk Support)' : ''}`;
+      return <option key={p} value={p} disabled={isDisabled} className={isDisabled ? 'text-slate-600 italic' : 'text-white'}>{optLabel}</option>
+    })}
+</select>
                       {warningMsg && <p className="text-[8px] text-amber-500 font-bold bg-amber-500/10 p-1 rounded mt-1">{warningMsg}</p>}
                     </div>
                   )
@@ -108,8 +122,8 @@ export default function ElementCard({ el, allElements, board, usedPins, onUpdate
                   const targetActuator = allElements.find(x => x.name === e.target.value);
                   onUpdate(el.id, { 
                     target: e.target.value, 
-                    actionTrue: targetActuator?.type === "Servo SG90" ? "90" : "HIGH", 
-                    actionFalse: targetActuator?.type === "Servo SG90" ? "0" : "LOW" 
+                    actionTrue: targetActuator?.type.includes("Servo") ? "90" : "HIGH", 
+                    actionFalse: targetActuator?.type.includes("Servo") ? "0" : "LOW" 
                   });
                 }} className="bg-transparent p-1.5 rounded text-xs font-bold flex-1 outline-none text-emerald-500">
                   <option value="">-- TARGET --</option>
