@@ -42,10 +42,12 @@ export default function App() {
     } else {
       // Proses Daftar Akun Baru
       const { error } = await supabase.auth.signUp({ email, password });
-      if (error) alert("Gagal Daftar: " + error.message);
-      else {
-        alert("Pendaftaran berhasil! Silakan login menggunakan akun tersebut.");
-        setIsLoginMode(true);
+      if (error) {
+        alert("Gagal Daftar: " + error.message);
+      } else {
+        // --- INI PERUBAHANNYA KANG MAS ---
+        alert("Pendaftaran berhasil! Silakan konfirmasi email Anda.");
+        setIsLoginMode(true); // Opsional: Langsung arahkan kembali ke mode login
       }
     }
     setIsLoading(false);
