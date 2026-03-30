@@ -116,320 +116,287 @@ export const getPinWarning = (board: string, pin: string, type: string) => {
 // 7. TEMPLATE PROYEK (RESEP KODINGAN)
 // ==========================================
 export const PROJECT_TEMPLATES = [
+  // --- KATEGORI: TRAFFIC LIGHT SYSTEM ---
+  {
+    id: "tl_1",
+    name: "🚦 Pertigaan: Standar 3 Arah",
+    description: "Sistem lampu lalu lintas untuk pertigaan. Mengatur giliran jalan dari sisi A, B, lalu C secara berurutan.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 101, kind: "Actuator", type: "Traffic Light Side A", name: "jalur_a", pin: "2" },
+      { id: 102, kind: "Utility", type: "Delay", name: "durasi_a", value: "5000" },
+      { id: 103, kind: "Actuator", type: "Traffic Light Side B", name: "jalur_b", pin: "3" },
+      { id: 104, kind: "Utility", type: "Delay", name: "durasi_b", value: "5000" },
+      { id: 105, kind: "Actuator", type: "Traffic Light Side C", name: "jalur_c", pin: "4" },
+      { id: 106, kind: "Utility", type: "Delay", name: "durasi_c", value: "5000" }
+    ]
+  },
+  {
+    id: "tl_2",
+    name: "🚥 Perempatan: Jalur Padat",
+    description: "Siklus 4 arah untuk perempatan besar. Menggunakan delay presisi agar tidak terjadi tabrakan logika.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 107, kind: "Actuator", type: "Green LED Side 1", name: "utara", pin: "2" },
+      { id: 108, kind: "Utility", type: "Delay", name: "jeda_utara", value: "4000" },
+      { id: 109, kind: "Actuator", type: "Green LED Side 2", name: "selatan", pin: "3" },
+      { id: 110, kind: "Utility", type: "Delay", name: "jeda_selatan", value: "4000" },
+      { id: 111, kind: "Actuator", type: "Green LED Side 3", name: "timur", pin: "4" },
+      { id: 112, kind: "Utility", type: "Delay", name: "jeda_timur", value: "4000" },
+      { id: 113, kind: "Actuator", type: "Green LED Side 4", name: "barat", pin: "5" },
+      { id: 114, kind: "Utility", type: "Delay", name: "jeda_barat", value: "4000" }
+    ]
+  },
+  {
+    id: "tl_5",
+    name: "🔘 Pelican Crossing (Tombol Tekan)",
+    description: "Lampu merah kendaraan HANYA akan aktif jika penyeberang menekan tombol.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 115, kind: "Sensor", type: "Tombol (Push Button)", name: "tombol_seberang", pin: "4" },
+      { id: 116, kind: "Actuator", type: "Lampu Merah Mobil", name: "stop_mobil", pin: "5" },
+      { id: 117, kind: "Actuator", type: "Lampu Hijau Orang", name: "jalan_orang", pin: "6" },
+      { id: 118, kind: "Logic", name: "cek_tombol", source: "val_tombol_seberang", operator: "==", threshold: "1", target: "stop_mobil", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 119, kind: "Utility", type: "Delay", name: "durasi_nyebrang", value: "5000" }
+    ]
+  },
+
   // --- KATEGORI: SMART HOME & CITY ---
   {
-    id: "ex_1",
+    id: "home_1",
     name: "🏠 Smart Home: Lampu Otomatis",
     description: "Lampu akan menyala otomatis saat ruangan gelap menggunakan sensor LDR.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 11, kind: "Sensor", type: "Cahaya (LDR)", name: "sensor_cahaya", pin: "A0" },
-      { id: 12, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "lampu_teras", pin: "8" },
-      { id: 13, kind: "Logic", name: "logika_lampu", source: "val_sensor_cahaya", operator: ">", threshold: "700", target: "lampu_teras", actionTrue: "HIGH", actionFalse: "LOW" }
+      { id: 201, kind: "Sensor", type: "Cahaya (LDR)", name: "sensor_cahaya", pin: "A0" },
+      { id: 202, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "lampu_teras", pin: "8" },
+      { id: 203, kind: "Logic", name: "logika_lampu", source: "val_sensor_cahaya", operator: ">", threshold: "700", target: "lampu_teras", actionTrue: "HIGH", actionFalse: "LOW" }
     ]
   },
   {
-    id: "ex_11",
-    name: "🗑️ Smart Bin: Tempat Sampah Otomatis",
-    description: "Tutup tempat sampah terbuka otomatis menggunakan Servo saat tangan terdeteksi di atas sensor Ultrasonik.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 111, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "sensor_tangan", pin: "2", pin2: "3" },
-      { id: 112, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "tutup_sampah", pin: "9" },
-      { id: 113, kind: "Logic", name: "buka_tutup", source: "val_sensor_tangan", operator: "<", threshold: "15", target: "tutup_sampah", actionTrue: "90", actionFalse: "0" }
-    ]
-  },
-  {
-    id: "ex_12",
-    name: "🚗 Smart Garage: Pintu Garasi Otomatis",
+    id: "home_2",
+    name: "🚗 Smart Garage: Pintu Otomatis",
     description: "Pintu garasi terbuka saat mobil terdeteksi di depan pintu menggunakan sensor Infrared.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 121, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "deteksi_mobil", pin: "4" },
-      { id: 122, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "pintu_garasi", pin: "10" },
-      { id: 123, kind: "Logic", name: "logika_pintu", source: "val_deteksi_mobil", operator: "==", threshold: "0", target: "pintu_garasi", actionTrue: "90", actionFalse: "0" }
+      { id: 204, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "deteksi_mobil", pin: "4" },
+      { id: 205, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "pintu_garasi", pin: "10" },
+      { id: 206, kind: "Logic", name: "logika_pintu", source: "val_deteksi_mobil", operator: "==", threshold: "0", target: "pintu_garasi", actionTrue: "90", actionFalse: "0" }
     ]
   },
   {
-    id: "ex_13",
-    name: "🏢 Smart Lift: Deteksi Lantai",
-    description: "Menampilkan pesan di Serial Monitor saat sensor mendeteksi lift sampai di lantai tujuan.",
+    id: "home_3",
+    name: "🅿️ Smart Parking: Deteksi Slot",
+    description: "Palang pintu terbuka otomatis (Servo) jika ada kendaraan masuk.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 131, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "sensor_lantai", pin: "5" },
-      { id: 132, kind: "Utility", type: "Serial Print", name: "log_lift", value: "Lift Sampai di Lantai 1", source: "" },
-      { id: 133, kind: "Logic", name: "cek_posisi", source: "val_sensor_lantai", operator: "==", threshold: "0", target: "log_lift", actionTrue: "PRINT", actionFalse: "LOW" }
+      { id: 207, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "sensor_masuk", pin: "2" },
+      { id: 208, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "palang_pintu", pin: "9" },
+      { id: 209, kind: "Logic", name: "buka_palang", source: "val_sensor_masuk", operator: "==", threshold: "0", target: "palang_pintu", actionTrue: "90", actionFalse: "0" }
     ]
   },
 
   // --- KATEGORI: AGRICULTURE & FARMING ---
   {
-    id: "ex_2",
+    id: "farm_1",
     name: "🌱 Smart Farming: Penyiram Otomatis",
     description: "Pompa air aktif jika tanah kering untuk menjaga kelembaban tanaman.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 21, kind: "Sensor", type: "Kelembaban Tanah (Soil Moisture)", name: "sensor_tanah", pin: "A1" },
-      { id: 22, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "pompa", pin: "9" },
-      { id: 23, kind: "Logic", name: "logika_siram", source: "val_sensor_tanah", operator: ">", threshold: "800", target: "pompa", actionTrue: "HIGH", actionFalse: "LOW" }
+      { id: 301, kind: "Sensor", type: "Kelembaban Tanah (Soil Moisture)", name: "sensor_tanah", pin: "A1" },
+      { id: 302, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "pompa", pin: "9" },
+      { id: 303, kind: "Logic", name: "logika_siram", source: "val_sensor_tanah", operator: ">", threshold: "800", target: "pompa", actionTrue: "HIGH", actionFalse: "LOW" }
     ]
   },
   {
-    id: "ex_17",
-    name: "🌡️ Greenhouse: Pengatur Suhu Tanaman",
-    description: "Kipas angin menyala otomatis jika suhu di dalam Greenhouse terlalu panas.",
+    id: "farm_2",
+    name: "☀️ Solar Tracker: Panel Surya Pintar",
+    description: "Panel surya bergerak mengikuti arah datangnya cahaya matahari.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 171, kind: "Sensor", type: "Suhu & Kelembaban (DHT11/DHT22)", name: "dht_greenhouse", pin: "7" },
-      { id: 172, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "kipas_exhaust", pin: "6" },
-      { id: 173, kind: "Logic", name: "logika_suhu", source: "val_dht_greenhouse", operator: ">", threshold: "32", target: "kipas_exhaust", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-  {
-    id: "ex_14",
-    name: "☔ Rain Detector: Penutup Jemuran Otomatis",
-    description: "Menggerakkan Servo untuk menutup atap jemuran saat sensor mendeteksi adanya air hujan.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 141, kind: "Sensor", type: "Sensor Hujan (Rain Sensor)", name: "sensor_hujan", pin: "A2" },
-      { id: 142, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "atap_jemuran", pin: "11" },
-      { id: 143, kind: "Logic", name: "logika_hujan", source: "val_sensor_hujan", operator: "<", threshold: "500", target: "atap_jemuran", actionTrue: "180", actionFalse: "0" }
+      { id: 304, kind: "Sensor", type: "Cahaya (LDR)", name: "ldr_kiri", pin: "A1" },
+      { id: 305, kind: "Sensor", type: "Cahaya (LDR)", name: "ldr_kanan", pin: "A2" },
+      { id: 306, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "servo_solar", pin: "9" },
+      { id: 307, kind: "Logic", name: "ke_kiri", source: "val_ldr_kiri", operator: "<", threshold: "val_ldr_kanan", target: "servo_solar", actionTrue: "180", actionFalse: "0" }
     ]
   },
 
   // --- KATEGORI: SECURITY & SAFETY ---
   {
-    id: "ex_4",
-    name: "🚨 Security: Alarm Jarak Parkir",
-    description: "Buzzer berbunyi jika ada objek mendekat kurang dari 20cm.",
+    id: "sec_1",
+    name: "👤 Anti Maling: Detektor PIR",
+    description: "Membunyikan sirine jika sensor PIR mendeteksi gerakan manusia.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 41, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "sensor_jarak", pin: "2", pin2: "3" },
-      { id: 42, kind: "Actuator", type: "Buzzer Aktif", name: "alarm", pin: "11" },
-      { id: 43, kind: "Logic", name: "cek_jarak", source: "val_sensor_jarak", operator: "<", threshold: "20", target: "alarm", actionTrue: "HIGH", actionFalse: "LOW" }
+      { id: 401, kind: "Sensor", type: "Gerak (PIR)", name: "sensor_gerak", pin: "12" },
+      { id: 402, kind: "Actuator", type: "Buzzer Aktif", name: "sirine", pin: "13" },
+      { id: 403, kind: "Logic", name: "logika_maling", source: "val_sensor_gerak", operator: "==", threshold: "1", target: "sirine", actionTrue: "HIGH", actionFalse: "LOW" }
     ]
   },
   {
-    id: "ex_20",
-    name: "👤 Intruder Alarm: Deteksi Maling",
-    description: "Lampu Merah berkedip dan Buzzer menyala jika sensor PIR mendeteksi gerakan manusia.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 201, kind: "Sensor", type: "Gerak (PIR)", name: "sensor_gerak", pin: "12" },
-      { id: 202, kind: "Actuator", type: "Buzzer Aktif", name: "sirine", pin: "13" },
-      { id: 203, kind: "Logic", name: "logika_maling", source: "val_sensor_gerak", operator: "==", threshold: "1", target: "sirine", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-  {
-    id: "ex_9",
-    name: "🚭 Gas Detector: Deteksi Kebocoran Gas",
-    description: "Memberikan peringatan suara jika terdeteksi kebocoran gas LPG atau asap.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 91, kind: "Sensor", type: "Gas & Asap (MQ-2)", name: "mq_sensor", pin: "A4" },
-      { id: 92, kind: "Actuator", type: "Buzzer Aktif", name: "alarm_gas", pin: "4" },
-      { id: 93, kind: "Logic", name: "cek_gas", source: "val_mq_sensor", operator: ">", threshold: "400", target: "alarm_gas", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-  {
-    id: "ex_15",
+    id: "sec_2",
     name: "🔥 Fire Alarm: Deteksi Api",
-    description: "Sistem peringatan dini yang aktif saat sensor api mendeteksi adanya gelombang panas api.",
+    description: "Sistem peringatan dini yang aktif saat sensor api mendeteksi gelombang panas api.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 151, kind: "Sensor", type: "Api (Flame Sensor)", name: "sensor_api", pin: "A5" },
-      { id: 152, kind: "Actuator", type: "LED Merah", name: "led_bahaya", pin: "5" },
-      { id: 153, kind: "Logic", name: "logika_api", source: "val_sensor_api", operator: "<", threshold: "200", target: "led_bahaya", actionTrue: "HIGH", actionFalse: "LOW" }
+      { id: 404, kind: "Sensor", type: "Api (Flame Sensor)", name: "sensor_api", pin: "A5" },
+      { id: 405, kind: "Actuator", type: "LED Merah", name: "led_bahaya", pin: "5" },
+      { id: 406, kind: "Logic", name: "logika_api", source: "val_sensor_api", operator: "<", threshold: "200", target: "led_bahaya", actionTrue: "HIGH", actionFalse: "LOW" }
     ]
   },
 
   // --- KATEGORI: HEALTH & AUTOMATION ---
   {
-    id: "ex_10",
-    name: "🧴 Smart Sanitizer: Hand Sanitizer Otomatis",
+    id: "auto_1",
+    name: "🧴 Smart Sanitizer: Sanitizer Otomatis",
     description: "Mengeluarkan cairan pembersih tangan tanpa sentuh menggunakan servo.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 101, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "deteksi_tangan", pin: "3" },
-      { id: 102, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "tuas_botol", pin: "9" },
-      { id: 103, kind: "Logic", name: "tekan_tuas", source: "val_deteksi_tangan", operator: "==", threshold: "0", target: "tuas_botol", actionTrue: "45", actionFalse: "0" }
+      { id: 501, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "deteksi_tangan", pin: "3" },
+      { id: 502, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "tuas_botol", pin: "9" },
+      { id: 503, kind: "Logic", name: "tekan_tuas", source: "val_deteksi_tangan", operator: "==", threshold: "0", target: "tuas_botol", actionTrue: "45", actionFalse: "0" }
     ]
   },
   {
-    id: "ex_5",
-    name: "🧼 Smart Tap: Kran Air Otomatis",
-    description: "Membuka kran air otomatis saat tangan berada di bawah sensor.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 51, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "sensor_kran", pin: "4" },
-      { id: 52, kind: "Actuator", type: "Pompa Air DC", name: "kran", pin: "12" },
-      { id: 53, kind: "Logic", name: "logika_kran", source: "val_sensor_kran", operator: "==", threshold: "0", target: "kran", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-  {
-    id: "ex_19",
-    name: "🌊 Water Control: Pengisi Tandon Otomatis",
+    id: "auto_2",
+    name: "🌊 Water Control: Pengisi Tandon",
     description: "Mematikan pompa air secara otomatis jika tandon air sudah penuh.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 191, kind: "Sensor", type: "Level Air (Water Level Sensor)", name: "sensor_air", pin: "A3" },
-      { id: 192, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "pompa_tandon", pin: "7" },
-      { id: 193, kind: "Logic", name: "cek_penuh", source: "val_sensor_air", operator: ">", threshold: "500", target: "pompa_tandon", actionTrue: "LOW", actionFalse: "HIGH" }
+      { id: 504, kind: "Sensor", type: "Level Air (Water Level Sensor)", name: "sensor_air", pin: "A3" },
+      { id: 505, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "pompa_tandon", pin: "7" },
+      { id: 506, kind: "Logic", name: "cek_penuh", source: "val_sensor_air", operator: ">", threshold: "500", target: "pompa_tandon", actionTrue: "LOW", actionFalse: "HIGH" }
     ]
   },
 
   // --- KATEGORI: INDUSTRIAL & SCIENCE ---
   {
-    id: "ex_21",
+    id: "sci_1",
     name: "📦 Logistik: Penghitung Barang",
     description: "Menghitung jumlah barang yang lewat di conveyor menggunakan sensor Infrared.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 211, kind: "Variable", name: "total_barang", varType: "int", value: "0" },
-      { id: 212, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "sensor_conveyor", pin: "6" },
-      { id: 213, kind: "Logic", name: "hitung", source: "val_sensor_conveyor", operator: "==", threshold: "0", target: "total_barang", actionTrue: "1", actionFalse: "0" },
-      { id: 214, kind: "Utility", type: "Serial Print", name: "print_total", value: "Barang Terdeteksi", source: "total_barang" }
+      { id: 601, kind: "Variable", name: "total_barang", varType: "int", value: "0" },
+      { id: 602, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "sensor_conveyor", pin: "6" },
+      { id: 603, kind: "Logic", name: "hitung", source: "val_sensor_conveyor", operator: "==", threshold: "0", target: "total_barang", actionTrue: "1", actionFalse: "0" },
+      { id: 604, kind: "Utility", type: "Serial Print", name: "print_total", value: "Barang Terdeteksi", source: "total_barang" }
     ]
   },
   {
-    id: "ex_25",
-    name: "🛑 Safety: Tombol Emergency Stop",
-    description: "Mematikan seluruh sistem secara instan saat tombol darurat ditekan.",
+    id: "sci_2",
+    name: "📏 Height Meter: Ukur Tinggi",
+    description: "Mengukur jarak dari plafon ke kepala untuk mengetahui tinggi badan.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 251, kind: "Sensor", type: "Tombol (Push Button)", name: "tombol_stop", pin: "2" },
-      { id: 252, kind: "Actuator", type: "Motor DC", name: "mesin_pabrik", pin: "3" },
-      { id: 253, kind: "Logic", name: "e_stop", source: "val_tombol_stop", operator: "==", threshold: "1", target: "mesin_pabrik", actionTrue: "LOW", actionFalse: "HIGH" }
-    ]
-  },
-  {
-    id: "ex_16",
-    name: "🫨 Earthquake: Deteksi Gempa",
-    description: "Buzzer akan berteriak kencang jika sensor getaran mendeteksi adanya guncangan tanah.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 161, kind: "Sensor", type: "Getaran (Vibration Sensor)", name: "sensor_getar", pin: "10" },
-      { id: 162, kind: "Actuator", type: "Buzzer Aktif", name: "alarm_gempa", pin: "11" },
-      { id: 163, kind: "Logic", name: "cek_guncangan", source: "val_sensor_getar", operator: "==", threshold: "1", target: "alarm_gempa", actionTrue: "HIGH", actionFalse: "LOW" }
+      { id: 605, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "jarak_kepala", pin: "5", pin2: "6" },
+      { id: 606, kind: "Utility", type: "Serial Print", name: "print_tinggi", value: "Tinggi Badan", source: "val_jarak_kepala" }
     ]
   },
 
   // --- KATEGORI: AQUARIUM & PETS ---
   {
-    id: "ex_3",
-    name: "🐠 Aquascape: Pemberi Pakan Ikan",
-    description: "Memberi pakan ikan secara berkala menggunakan motor servo.",
+    id: "pet_1",
+    name: "🐟 Auto Feeder: Makan Ikan",
+    description: "Beri makan ikan otomatis setiap jeda waktu tertentu menggunakan servo.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 31, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "servo_pakan", pin: "10" },
-      { id: 32, kind: "Utility", type: "Delay", name: "jeda_makan", value: "10000" },
-      { id: 33, kind: "Logic", name: "aksi_makan", source: "0", operator: "==", threshold: "0", target: "servo_pakan", actionTrue: "90", actionFalse: "0" }
+      { id: 701, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "servo_pakan", pin: "9" },
+      { id: 702, kind: "Utility", type: "Delay", name: "jeda_makan", value: "10000" },
+      { id: 703, kind: "Logic", name: "buka_katup", source: "0", operator: "==", threshold: "0", target: "servo_pakan", actionTrue: "90", actionFalse: "0" }
     ]
   },
   {
-    id: "ex_24",
-    name: "🐈 Pet Care: Dispenser Minum Kucing",
-    description: "Mengeluarkan air ke wadah minum saat kucing mendekat ke sensor ultrasonik.",
+    id: "pet_2",
+    name: "🐕 Smart Door: Pintu Hewan RFID",
+    description: "Pintu hanya terbuka jika hewan peliharaan memakai kalung RFID yang benar.",
     board: "Arduino Uno R3",
     elements: [
-      { id: 241, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "deteksi_kucing", pin: "A0", pin2: "A1" },
-      { id: 242, kind: "Actuator", type: "Pompa Air DC", name: "pompa_minum", pin: "6" },
-      { id: 243, kind: "Logic", name: "beri_minum", source: "val_deteksi_kucing", operator: "<", threshold: "10", target: "pompa_minum", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-
-  // --- KATEGORI: ENERGY & LIGHTING ---
-  {
-    id: "ex_22",
-    name: "💡 City: Lampu Jalan Pintar",
-    description: "Lampu jalan yang hanya menyala jika ada kendaraan lewat di malam hari.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 221, kind: "Sensor", type: "Cahaya (LDR)", name: "cek_malam", pin: "A0" },
-      { id: 222, kind: "Sensor", type: "Infrared (Obstacle Avoidance)", name: "cek_kendaraan", pin: "2" },
-      { id: 223, kind: "Actuator", type: "LED Lampu Jalan", name: "lampu_jalan", pin: "3" },
-      { id: 224, kind: "Logic", name: "logika_hemat", source: "val_cek_kendaraan", operator: "==", threshold: "0", target: "lampu_jalan", actionTrue: "HIGH", actionFalse: "LOW" }
-    ]
-  },
-  {
-    id: "ex_18",
-    name: "🪟 Smart Window: Tirai Otomatis",
-    description: "Menutup tirai (Servo) saat matahari terlalu terik agar ruangan tetap sejuk.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 181, kind: "Sensor", type: "Cahaya (LDR)", name: "sensor_surya", pin: "A0" },
-      { id: 182, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "tirai_jendela", pin: "5" },
-      { id: 183, kind: "Logic", name: "logika_tirai", source: "val_sensor_surya", operator: "<", threshold: "300", target: "tirai_jendela", actionTrue: "180", actionFalse: "0" }
-    ]
-  },
-// --- KATEGORI KHUSUS: TRAFFIC LIGHT SYSTEM ---
-  {
-    id: "ex_tl_1",
-    name: "🚦 Pertigaan: Standar 3 Arah",
-    description: "Sistem lampu lalu lintas untuk pertigaan. Mengatur giliran jalan dari sisi A, B, lalu C secara berurutan.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 221, kind: "Actuator", type: "Traffic Light Side A", name: "jalur_a", pin: "2" }, // Pin Hijau Jalur A
-      { id: 222, kind: "Utility", type: "Delay", name: "durasi_a", value: "5000" },
-      { id: 223, kind: "Actuator", type: "Traffic Light Side B", name: "jalur_b", pin: "3" }, // Pin Hijau Jalur B
-      { id: 224, kind: "Utility", type: "Delay", name: "durasi_b", value: "5000" },
-      { id: 225, kind: "Actuator", type: "Traffic Light Side C", name: "jalur_c", pin: "4" }, // Pin Hijau Jalur C
-      { id: 226, kind: "Utility", type: "Delay", name: "durasi_c", value: "5000" }
-    ]
-  },
-  {
-    id: "ex_tl_2",
-    name: "🚥 Perempatan: Jalur Padat",
-    description: "Siklus 4 arah untuk perempatan besar. Menggunakan delay presisi agar tidak terjadi tabrakan logika.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 231, kind: "Actuator", type: "Green LED Side 1", name: "utara", pin: "2" },
-      { id: 232, kind: "Utility", type: "Delay", name: "jeda_utara", value: "4000" },
-      { id: 233, kind: "Actuator", type: "Green LED Side 2", name: "selatan", pin: "3" },
-      { id: 234, kind: "Utility", type: "Delay", name: "jeda_selatan", value: "4000" },
-      { id: 235, kind: "Actuator", type: "Green LED Side 3", name: "timur", pin: "4" },
-      { id: 236, kind: "Utility", type: "Delay", name: "jeda_timur", value: "4000" },
-      { id: 237, kind: "Actuator", type: "Green LED Side 4", name: "barat", pin: "5" },
-      { id: 238, kind: "Utility", type: "Delay", name: "jeda_barat", value: "4000" }
-    ]
-  },
-  {
-    id: "ex_tl_3",
-    name: "🚶 Pertigaan + Penyeberang Jalan",
-    description: "Lampu hijau kendaraan akan berhenti sejenak untuk memberi waktu pejalan kaki menyeberang (Lampu Hijau Pedestrian).",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 241, kind: "Actuator", type: "Lampu Kendaraan", name: "mobil", pin: "2" },
-      { id: 242, kind: "Utility", type: "Delay", name: "jalan_mobil", value: "8000" },
-      { id: 243, kind: "Actuator", type: "Lampu Kendaraan", name: "mobil_stop", pin: "2" }, // Low logic
-      { id: 244, kind: "Actuator", type: "Lampu Pejalan", name: "pedestrian", pin: "3" },
-      { id: 245, kind: "Utility", type: "Delay", name: "waktu_seberang", value: "5000" }
-    ]
-  },
-  {
-    id: "ex_tl_4",
-    name: "🚸 Perempatan + All-Red Pedestrian",
-    description: "Siklus perempatan di mana semua lampu kendaraan menjadi MERAH saat jalur pejalan kaki aktif.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 251, kind: "Actuator", type: "Lampu Hijau Kendaraan", name: "semua_jalur", pin: "2" },
-      { id: 252, kind: "Utility", type: "Delay", name: "kendaraan_jalan", value: "10000" },
-      { id: 253, kind: "Actuator", type: "Lampu Merah Semua", name: "semua_stop", pin: "2" }, 
-      { id: 254, kind: "Actuator", type: "Lampu Hijau Orang", name: "orang_jalan", pin: "3" },
-      { id: 255, kind: "Utility", type: "Delay", name: "durasi_aman", value: "7000" }
-    ]
-  },
-  {
-    id: "ex_tl_5",
-    name: "🔘 Pelican Crossing (Tombol Tekan)",
-    description: "Lampu merah kendaraan HANYA akan aktif jika penyeberang menekan tombol. Sangat hemat energi dan efisien.",
-    board: "Arduino Uno R3",
-    elements: [
-      { id: 261, kind: "Sensor", type: "Tombol (Push Button)", name: "tombol_seberang", pin: "4" },
-      { id: 262, kind: "Actuator", type: "Lampu Merah Mobil", name: "stop_mobil", pin: "5" },
-      { id: 263, kind: "Actuator", type: "Lampu Hijau Orang", name: "jalan_orang", pin: "6" },
-      { id: 264, kind: "Logic", name: "cek_tombol", source: "val_tombol_seberang", operator: "==", threshold: "1", target: "stop_mobil", actionTrue: "HIGH", actionFalse: "LOW" },
-      { id: 265, kind: "Utility", type: "Delay", name: "durasi_nyebrang", value: "5000" }
+      { id: 704, kind: "Sensor", type: "RFID Reader (RC522)", name: "pet_tag", pin: "10", pin2: "5" },
+      { id: 705, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "cat_door", pin: "9" },
+      { id: 706, kind: "Logic", name: "unlock", source: "val_pet_tag", operator: ">", threshold: "0", target: "cat_door", actionTrue: "90", actionFalse: "0" }
     ]
   }
-]
+];
+export const SENSOR_EXAMPLES = [
+  {
+    id: "sn_1",
+    name: "🔊 Ultrasonik (HC-SR04)",
+    description: "Membaca jarak objek dalam satuan CM dan menampilkannya ke Serial Monitor.",
+    elements: [
+      { id: 1, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "sonar", pin: "2", pin2: "3" },
+      { id: 2, kind: "Utility", type: "Serial Print", name: "monitor", value: "Jarak (cm)", source: "val_sonar" },
+      { id: 3, kind: "Utility", type: "Delay", name: "jeda", value: "500" }
+    ]
+  },
+  {
+    id: "sn_2",
+    name: "🌡️ Suhu & Kelembaban (DHT)",
+    description: "Membaca suhu ruangan secara realtime.",
+    elements: [
+      { id: 1, kind: "Sensor", type: "Suhu & Kelembaban (DHT11/DHT22)", name: "dht", pin: "2" },
+      { id: 2, kind: "Utility", type: "Serial Print", name: "monitor", value: "Suhu", source: "val_dht" },
+      { id: 3, kind: "Utility", type: "Delay", name: "jeda", value: "2000" }
+    ]
+  },
+  {
+    id: "sn_3",
+    name: "☀️ Sensor Cahaya (LDR)",
+    description: "Melihat nilai intensitas cahaya (0-1023).",
+    elements: [
+      { id: 1, kind: "Sensor", type: "Cahaya (LDR)", name: "ldr", pin: "A0" },
+      { id: 2, kind: "Utility", type: "Serial Print", name: "monitor", value: "Nilai LDR", source: "val_ldr" }
+    ]
+  },
+  {
+    id: "sn_4",
+    name: "💨 Sensor Gas (MQ-2)",
+    description: "Memonitor kadar asap atau gas di sekitar sensor.",
+    elements: [
+      { id: 1, kind: "Sensor", type: "Gas & Asap (MQ-2)", name: "asap", pin: "A1" },
+      { id: 2, kind: "Utility", type: "Serial Print", name: "monitor", value: "Kadar Gas", source: "val_asap" }
+    ]
+  }
+];
+export const ACTUATOR_EXAMPLES = [
+  {
+    id: "ac_1",
+    name: "⚙️ Motor Servo (SG90)",
+    description: "Tes pergerakan motor servo ke posisi sudut tertentu (0, 90, 180 derajat).",
+    elements: [
+      { id: 1, kind: "Actuator", type: "Motor Servo (SG90/MG996R)", name: "servo_tes", pin: "9" },
+      { id: 2, kind: "Utility", type: "Delay", name: "jeda", value: "2000" },
+      { id: 3, kind: "Logic", name: "ke_90", source: "0", operator: "==", threshold: "0", target: "servo_tes", actionTrue: "90", actionFalse: "0" }
+    ]
+  },
+  {
+    id: "ac_2",
+    name: "💡 LED Blinking",
+    description: "Tes dasar kedip lampu (Blink) untuk memastikan pin output bekerja.",
+    elements: [
+      { id: 1, kind: "Actuator", type: "LED Merah", name: "led_tes", pin: "13" },
+      { id: 2, kind: "Utility", type: "Delay", name: "on", value: "1000" },
+      { id: 3, kind: "Logic", name: "nyala", source: "0", operator: "==", threshold: "0", target: "led_tes", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 4, kind: "Utility", type: "Delay", name: "off", value: "1000" }
+    ]
+  },
+  {
+    id: "ac_3",
+    name: "🔌 Relay (Saklar Elektronik)",
+    description: "Tes bunyi 'klik' pada relay untuk memastikan sistem switching bekerja.",
+    elements: [
+      { id: 1, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "relay_tes", pin: "8" },
+      { id: 2, kind: "Logic", name: "toggle", source: "0", operator: "==", threshold: "0", target: "relay_tes", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 3, kind: "Utility", type: "Delay", name: "jeda", value: "3000" }
+    ]
+  },
+  {
+    id: "ac_4",
+    name: "🔊 Buzzer Alert",
+    description: "Menghasilkan bunyi beep berulang untuk indikator suara.",
+    elements: [
+      { id: 1, kind: "Actuator", type: "Buzzer Aktif", name: "buzzer_tes", pin: "11" },
+      { id: 2, kind: "Logic", name: "bunyi", source: "0", operator: "==", threshold: "0", target: "buzzer_tes", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 3, kind: "Utility", type: "Delay", name: "durasi", value: "500" }
+    ]
+  }
+];
