@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Cpu, Thermometer, Zap, Variable, GitMerge, Copy, Download, Eraser, Code2, Cable, Terminal, BookOpen, LayoutTemplate, X, Usb } from 'lucide-react';
+import { 
+  Cpu, Thermometer, Zap, Variable, GitMerge, Copy, Download, 
+  Eraser, Code2, Cable, Terminal, BookOpen, X, Usb, Activity 
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { BOARD_PINS, SENSORS_DB, ACTUATORS_DB, isPinSupported, PROJECT_TEMPLATES } from '@/lib/constants';
+import { BOARD_PINS, SENSORS_DB, ACTUATORS_DB, isPinSupported } from '@/lib/constants';
 import { generateArduinoCode } from '@/lib/codeGenerator';
 import { generateExplanation } from '@/lib/explanationGenerator';
 import ProjectModal from '@/components/ProjectModal';
@@ -13,6 +16,7 @@ import ElementCard from '@/components/ElementCard';
 import ExplanationViewer from '@/components/ExplanationViewer';
 
 export default function Dashboard({ username }: { username: string }) {
+  // --- STATE UTAMA ---
   const [board, setBoard] = useState("Arduino Uno R3");
   const [elements, setElements] = useState<any[]>([]);
   const [projectName, setProjectName] = useState("Proyek Micromice Kang Mas");
@@ -25,24 +29,51 @@ export default function Dashboard({ username }: { username: string }) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- LISTENER DARI NAVBAR UTAMA ---
+  // =========================================
+  // 1. LISTENER PERINTAH DARI NAVBAR (page.tsx)
+  // =========================================
   useEffect(() => {
     const handleAction = (e: any) => {
       const { type, data } = e.detail;
-      if (type === 'new') { if(window.confirm("Kosongkan Workspace?")) setElements([]); }
-      else if (type === 'openCloud') fetchProjectList();
-      else if (type === 'saveCloud') saveToCloud();
-      else if (type === 'importLocal') fileInputRef.current?.click();
-      else if (type === 'exportLocal') handleExportLocal();
-      else if (type === 'loadSpecific') {
-        setBoard(data.board);
-        setProjectName(data.name);
-        setElements(data.elements.map((el: any) => ({ ...el, id: Date.now() + Math.random() })));
+
+      switch (type) {
+        case 'new':
+          if(window.confirm("Buat proyek baru? Workspace saat ini akan dibersihkan.")) {
+            setElements([]);
+            setProjectName("Proyek Baru");
+          }
+          break;
+        case 'openCloud':
+          fetchProjectList();
+          break;
+        case 'saveCloud':
+          saveToCloud();
+          break;
+        case 'importLocal':
+          fileInputRef.current?.click();
+          break;
+        case 'exportLocal':
+          handleExportLocal();
+          break;
+        case 'loadSpecific':
+          setBoard(data.board || "Arduino Uno R3");
+          setProjectName(data.name);
+          const elementsWithNewIds = data.elements.map((el: any) => ({
+            ...el,
+            id: Date.now() + Math.random()
+          }));
+          setElements(elementsWithNewIds);
+          break;
       }
     };
+
     window.addEventListener('dashboardAction', handleAction);
     return () => window.removeEventListener('dashboardAction', handleAction);
   }, [elements, projectName, board]);
+
+  // =========================================
+  // 2. CORE LOGIC & SYNC
+  // =========================================
 
   useEffect(() => {
     if (elements.length === 0) return;
@@ -55,21 +86,25 @@ export default function Dashboard({ username }: { username: string }) {
 
   const saveToCloud = async () => {
     setIsSyncing(true);
-    await supabase.from('ardumaster_projects').upsert({ username, project_name: projectName, elements, updated_at: new Date() }, { onConflict: 'username, project_name' });
+    const { error } = await supabase.from('ardumaster_projects').upsert({ 
+        username, project_name: projectName, elements, updated_at: new Date() 
+    }, { onConflict: 'username, project_name' });
     setIsSyncing(false);
-    alert("Proyek Tersimpan di Cloud!");
+    if (!error) alert("Mendarat dengan aman di Cloud, Kang Mas!");
+    else alert("Gagal simpan: " + error.message);
   };
 
   const fetchProjectList = async () => {
-    const { data } = await supabase.from('ardumaster_projects').select('id, project_name, updated_at').eq('username', username).order('updated_at', { ascending: false });
-    setSavedProjects(data || []);
-    setShowOpenModal(true);
+    const { data, error } = await supabase.from('ardumaster_projects').select('id, project_name, updated_at').eq('username', username).order('updated_at', { ascending: false });
+    if (!error) { setSavedProjects(data || []); setShowOpenModal(true); }
   };
 
   const handleExportLocal = () => {
-    const blob = new Blob([JSON.stringify({ projectName, board, elements }, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = `${projectName}.ardumaster`;
+    const data = { projectName, board, elements };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${projectName.replace(/\s+/g, '_')}.ardumaster`;
     a.click();
   };
 
@@ -78,15 +113,26 @@ export default function Dashboard({ username }: { username: string }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-        const parsed = JSON.parse(ev.target?.result as string);
-        if (parsed.elements) { setElements(parsed.elements); setProjectName(parsed.projectName); setBoard(parsed.board); }
+        try {
+            const parsed = JSON.parse(ev.target?.result as string);
+            if (parsed.elements) {
+                setElements(parsed.elements);
+                setProjectName(parsed.projectName || "Imported Project");
+                setBoard(parsed.board || "Arduino Uno R3");
+                alert("File berhasil dimuat!");
+            }
+        } catch (err) { alert("Format file salah!"); }
     };
     reader.readAsText(file);
   };
 
   const usedPins = useMemo(() => {
     const pins: any[] = [];
-    elements.forEach(el => { ['pin', 'pin2', 'pin3', 'pin4', 'pin5'].forEach(k => { if (el[k] && !['Logic', 'Variable', 'Utility'].includes(el.kind)) pins.push({ device: el.name, pin: el[k] }); }); });
+    elements.forEach(el => {
+      ['pin', 'pin2', 'pin3', 'pin4', 'pin5'].forEach(k => {
+        if (el[k] && !['Logic', 'Variable', 'Utility'].includes(el.kind)) pins.push({ device: el.name, pin: el[k] });
+      });
+    });
     return pins;
   }, [elements]);
 
@@ -117,8 +163,9 @@ export default function Dashboard({ username }: { username: string }) {
   };
 
   const addElement = (kind: string) => {
-    if (elements.length >= 12) return alert("Maksimal 12 kartu!");
+    if (elements.length >= 12) return alert("Batas maksimal 12 kartu!");
     let newEl: any = { id: Date.now(), kind, name: `${kind.toLowerCase()}_${elements.length + 1}` };
+    
     if (kind === 'Variable') { newEl.varType = 'float'; newEl.value = '0'; newEl.sourceSensor = ''; }
     else if (kind === 'Logic') { newEl.source = ""; newEl.operator = ">"; newEl.threshold = "100"; newEl.target = ""; newEl.actionTrue = "HIGH"; newEl.actionFalse = "LOW"; }
     else if (kind === 'Utility') { newEl.type = "Serial Print"; newEl.value = "Data"; newEl.source = ""; }
@@ -129,9 +176,13 @@ export default function Dashboard({ username }: { username: string }) {
     setElements([...elements, newEl]);
   };
 
+  // =========================================
+  // 3. RENDER WORKSPACE
+  // =========================================
   return (
-    <div className="w-full relative">
+    <div className="w-full animate-in fade-in duration-500">
       <input type="file" accept=".ardumaster,.json" ref={fileInputRef} onChange={handleImportLocal} className="hidden" />
+
       <ProjectModal show={showOpenModal} onClose={() => setShowOpenModal(false)} projects={savedProjects} onSelectProject={(id) => {
           const p = savedProjects.find(x => x.id === id);
           if(p) { setElements(p.elements || []); setProjectName(p.project_name); }
@@ -139,65 +190,114 @@ export default function Dashboard({ username }: { username: string }) {
       }} />
 
       <div className="grid lg:grid-cols-12 gap-8 items-start">
+        
+        {/* KOLOM KIRI: WORKSPACE */}
         <div className="lg:col-span-5 space-y-6">
-          <div className="bg-slate-900 p-8 rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden">
-            <input value={projectName} onChange={e => setProjectName(e.target.value)} className="bg-transparent border-none text-xl lg:text-2xl font-black text-white outline-none w-full uppercase mb-6 focus:text-cyan-500" />
-            <div className="flex gap-2 mb-8">
-                <select value={board} onChange={e => setBoard(e.target.value)} className="bg-black/30 p-3 rounded-xl text-[10px] font-black uppercase border border-white/5 text-slate-500 outline-none flex-1 cursor-pointer">
+          <div className="bg-slate-900 p-5 sm:p-8 rounded-[2rem] sm:rounded-[3rem] border border-white/5 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-500/5 blur-[100px] rounded-full" />
+            
+            <input 
+               value={projectName} 
+               onChange={e => setProjectName(e.target.value)} 
+               className="bg-transparent border-none text-xl lg:text-2xl font-black text-white outline-none w-full uppercase mb-6 focus:text-cyan-500 transition-colors"
+            />
+
+            <div className="flex flex-col sm:flex-row gap-2 mb-8 w-full">
+                <select value={board} onChange={e => setBoard(e.target.value)} className="bg-black/30 p-3 rounded-xl text-[10px] font-black uppercase border border-white/5 text-slate-500 outline-none w-full sm:flex-1 cursor-pointer hover:border-white/20 transition-all">
                   {Object.keys(BOARD_PINS).map(b => <option key={b}>{b}</option>)}
                 </select>
-                <select value={baudRate} onChange={e => setBaudRate(e.target.value)} className="bg-black/30 p-3 rounded-xl text-[10px] font-black uppercase border border-white/5 text-slate-500 outline-none w-28 cursor-pointer">
-                  {["9600", "115200"].map(b => <option key={b}>{b}</option>)}
+                <select value={baudRate} onChange={e => setBaudRate(e.target.value)} className="bg-black/30 p-3 rounded-xl text-[10px] font-black uppercase border border-white/5 text-slate-500 outline-none w-full sm:w-28 cursor-pointer hover:border-white/20 transition-all">
+                  {["9600", "115200"].map(b => <option key={b} value={b}>{b} BPS</option>)}
                 </select>
             </div>
 
-            <div className="grid grid-cols-5 gap-2 mb-8">
-               {['Sensor', 'Actuator', 'Variable', 'Logic', 'Utility'].map(k => (
-                 <button key={k} onClick={() => addElement(k)} className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-black border border-white/5 hover:border-cyan-500/50 hover:bg-cyan-900/20 active:scale-95 transition-all text-[8px] font-black uppercase">
-                    {k === 'Sensor' && <Thermometer size={14} className="text-cyan-500"/>}
-                    {k === 'Actuator' && <Zap size={14} className="text-emerald-500"/>}
-                    {k === 'Variable' && <Variable size={14} className="text-amber-500"/>}
-                    {k === 'Logic' && <GitMerge size={14} className="text-purple-500"/>}
-                    {k === 'Utility' && <Terminal size={14} className="text-blue-500"/>}
-                    {k.substring(0,4)}
+            {/* BUTTON BAR - PERBAIKAN RESPONSIVE DI SINI */}
+            <div className="flex flex-wrap gap-2 mb-8 w-full">
+               {[
+                 { k: 'Sensor', i: <Thermometer size={14}/>, c: 'text-cyan-500' },
+                 { k: 'Actuator', i: <Zap size={14}/>, c: 'text-emerald-500' },
+                 { k: 'Variable', i: <Variable size={14}/>, c: 'text-amber-500' },
+                 { k: 'Logic', i: <GitMerge size={14}/>, c: 'text-purple-500' },
+                 { k: 'Utility', i: <Terminal size={14}/>, c: 'text-blue-500' }
+               ].map(item => (
+                 <button 
+                   key={item.k} 
+                   onClick={() => addElement(item.k)} 
+                   className="flex-1 min-w-[50px] sm:min-w-[60px] flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-black border border-white/5 hover:border-white/20 hover:bg-white/5 active:scale-95 transition-all text-[8px] font-black uppercase group"
+                 >
+                    <div className={`${item.c} group-hover:scale-110 transition-transform`}>{item.i}</div>
+                    {item.k.substring(0,4)}
                  </button>
                ))}
             </div>
 
-            <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-              {elements.length === 0 && <div className="py-20 text-center opacity-30 text-[10px] font-black uppercase tracking-widest">Workspace Kosong</div>}
+            {/* CARDS LIST */}
+            <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+              {elements.length === 0 && (
+                <div className="py-20 flex flex-col items-center opacity-20 select-none">
+                   <Cpu size={48} className="mb-4" />
+                   <p className="text-[10px] font-black uppercase tracking-[0.2em]">Workspace Kosong</p>
+                </div>
+              )}
               {elements.map(el => (
-                <ElementCard key={el.id} el={el} allElements={elements} board={board} usedPins={usedPins} onUpdate={(id, d) => setElements(elements.map(e => e.id === id ? {...e, ...d} : e))} onRemove={id => setElements(elements.filter(e => e.id !== id))} onMove={(id, dir) => {
-                  const idx = elements.findIndex(e => e.id === id);
-                  const newEls = [...elements];
-                  if(dir === 'up' && idx > 0) [newEls[idx], newEls[idx-1]] = [newEls[idx-1], newEls[idx]];
-                  if(dir === 'down' && idx < elements.length -1) [newEls[idx], newEls[idx+1]] = [newEls[idx+1], newEls[idx]];
-                  setElements(newEls);
-                }} />
+                <ElementCard 
+                   key={el.id} el={el} allElements={elements} board={board} usedPins={usedPins} 
+                   onUpdate={(id, d) => setElements(elements.map(e => e.id === id ? {...e, ...d} : e))} 
+                   onRemove={id => setElements(elements.filter(e => e.id !== id))} 
+                   onMove={(id, dir) => {
+                      const idx = elements.findIndex(e => e.id === id);
+                      const newEls = [...elements];
+                      if(dir === 'up' && idx > 0) [newEls[idx], newEls[idx-1]] = [newEls[idx-1], newEls[idx]];
+                      if(dir === 'down' && idx < elements.length -1) [newEls[idx], newEls[idx+1]] = [newEls[idx+1], newEls[idx]];
+                      setElements(newEls);
+                   }} 
+                />
               ))}
             </div>
           </div>
         </div>
 
-        <div className="lg:col-span-7 flex flex-col h-[850px] sticky top-28">
-          <div className="bg-slate-900 rounded-[3.5rem] border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl">
-            <div className="bg-white/5 px-8 py-6 flex justify-between items-center border-b border-white/5">
-              <div className="flex bg-black/50 p-1.5 rounded-2xl border border-white/5">
-                 {['code', 'wiring', 'explanation'].map(t => (
-                   <button key={t} onClick={() => setActiveTab(t as any)} className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === t ? 'bg-cyan-600 text-white' : 'text-slate-500 hover:text-white'}`}>{t}</button>
+        {/* KOLOM KANAN: VIEWERS */}
+        <div className="lg:col-span-7 flex flex-col h-[850px] sticky top-28 mt-8 lg:mt-0">
+          <div className="bg-slate-900 rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl relative">
+            
+            {/* TAB SELECTOR - PERBAIKAN RESPONSIVE DI SINI */}
+            <div className="bg-white/5 p-4 sm:px-8 sm:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-white/5 z-20">
+              <div className="flex flex-wrap justify-center bg-black/50 p-1.5 rounded-2xl border border-white/5 w-full sm:w-auto">
+                 {[
+                   { id: 'code', icon: <Code2 size={14}/>, label: 'KODE' },
+                   { id: 'wiring', icon: <Cable size={14}/>, label: 'WIRING' },
+                   { id: 'explanation', icon: <BookOpen size={14}/>, label: 'INFO' }
+                 ].map(t => (
+                   <button 
+                     key={t.id} 
+                     onClick={() => setActiveTab(t.id as any)} 
+                     className={`flex items-center gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${activeTab === t.id ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-900/40' : 'text-slate-500 hover:text-white'}`}
+                   >
+                     {t.icon} <span className="hidden sm:inline">{t.label}</span>
+                   </button>
                  ))}
               </div>
+
               {activeTab === 'code' && (
-                <div className="flex gap-3">
-                  <button onClick={() => { navigator.clipboard.writeText(finalCode); alert("Kopi Berhasil!"); }} className="p-2.5 bg-white/5 rounded-xl hover:bg-white/10 transition-all cursor-pointer"><Copy size={16}/></button>
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 w-full sm:w-auto">
+                  <button onClick={() => { navigator.clipboard.writeText(finalCode); alert("Kopi Berhasil!"); }} className="p-2.5 bg-white/5 rounded-xl hover:bg-white/10 text-cyan-400 transition-all cursor-pointer" title="Copy Code"><Copy size={16}/></button>
                   <button onClick={() => { 
                     const blob = new Blob([finalCode], { type: 'text/plain' });
                     const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${projectName}.ino`; a.click();
-                  }} className="p-2.5 bg-emerald-600/20 text-emerald-400 rounded-xl hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"><Download size={16}/></button>
-                  <button onClick={async () => { try { await (navigator as any).serial.requestPort(); alert("Arduino Terhubung!"); } catch { alert("Gagal koneksi USB."); } }} className="flex items-center gap-2 bg-amber-500/20 text-amber-400 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl hover:bg-amber-500 hover:text-white transition-all cursor-pointer"><Usb size={16}/> Upload</button>
+                  }} className="p-2.5 bg-emerald-600/10 text-emerald-400 rounded-xl hover:bg-emerald-600 hover:text-white transition-all cursor-pointer" title="Download .ino"><Download size={16}/></button>
+                  
+                  <button 
+                    onClick={async () => { try { await (navigator as any).serial.requestPort(); alert("Arduino Terdeteksi!"); } catch { alert("Gagal koneksi USB."); } }} 
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-black uppercase px-4 py-2.5 rounded-xl hover:bg-amber-500 hover:text-black transition-all cursor-pointer"
+                  >
+                    <Usb size={16}/> Upload
+                  </button>
                 </div>
               )}
             </div>
+
+            {/* VIEWER CONTENT */}
             <div className="flex-1 overflow-hidden relative bg-black/20">
                {activeTab === 'code' && <CodeViewer finalCode={finalCode} requiredLibs={requiredLibs} />}
                {activeTab === 'wiring' && <WiringViewer sensors={elements.filter(e => e.kind === 'Sensor')} actuators={elements.filter(e => e.kind === 'Actuator')} board={board} usedPins={usedPins} />}
@@ -205,6 +305,7 @@ export default function Dashboard({ username }: { username: string }) {
             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -40,7 +40,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
-      <body className="bg-[#020617] text-slate-400">{children}</body>
+      <body className="bg-[#020617] text-slate-400 overflow-x-hidden max-w-[100vw] w-full">{children}</body>
     </html>
   )
 }
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,       // Mencegah user nge-zoom layar pakai 2 jari
+  userScalable: false,   // Mencegah zoom juga
+  viewportFit: 'cover',  // Agar full screen sampai ke ujung poni HP
+};
+
+
