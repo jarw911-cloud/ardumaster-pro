@@ -12,10 +12,7 @@ interface WiringViewerProps {
 export default function WiringViewer({ sensors, actuators, board, usedPins }: WiringViewerProps) {
   
   const renderModule = (el: any, isRight: boolean) => {
-    // 1. Ambil teks instruksi dari constants.ts
     const wiringText = WIRING_MAP[el.type] || "Hubungkan pin sesuai dengan program.";
-    
-    // 2. Gunakan array ini khusus untuk menggambar jalur kabel secara visual
     const visualWires = [
         { label: "VCC", type: 'vcc', color: 'bg-red-500' },
         { label: "DATA", type: 'data', color: 'bg-cyan-500' },
@@ -27,7 +24,6 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
         {/* Body Modul Fisik */}
         <div className="bg-slate-800 border-b-4 border-slate-900 rounded-xl p-4 w-full shadow-2xl transition-transform group-hover:-translate-y-1 relative z-10">
           
-          {/* Ilustrasi Komponen Khusus */}
           {el.type.includes("HC-SR04") && (
             <div className="flex justify-around mb-4">
               <div className="w-10 h-10 rounded-full border-4 border-slate-600 bg-slate-700 flex items-center justify-center"><div className="w-4 h-4 bg-black rounded-full"></div></div>
@@ -37,12 +33,10 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
           
           <div className="text-[10px] font-black text-white text-center uppercase mb-2 tracking-tighter opacity-80">{el.type}</div>
           
-          {/* TAMPILAN TEKS PANDUAN */}
           <div className="bg-black/50 p-2 rounded text-[9px] text-slate-400 text-center leading-relaxed mb-4 border border-white/5">
              {wiringText}
           </div>
           
-          {/* Header Pin Modul Visual */}
           <div className="flex justify-center gap-1 bg-black/40 p-1.5 rounded-lg border border-white/5">
             {visualWires.map((w, idx) => (
                <div key={idx} className="flex flex-col items-center gap-1">
@@ -56,7 +50,6 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
         {/* Jalur Kabel Keluar */}
         <div className={`flex flex-col ${isRight ? 'items-start -translate-x-10' : 'items-end translate-x-10'} mt-2 w-full`}>
            {visualWires.map((w, idx) => {
-             // Deteksi pin mana yang dipakai untuk label data
              let pinLabel = "";
              if (w.type === 'vcc') pinLabel = "5V / 3.3V";
              else if (w.type === 'gnd') pinLabel = "GND";
@@ -87,14 +80,14 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
   };
 
   return (
-    // INI KUNCI UTAMANYA: w-full overflow-x-auto
-    <div className="flex-1 w-full p-4 md:p-10 overflow-x-auto overflow-y-auto custom-scrollbar bg-[radial-gradient(circle_at_center,rgba(15,23,42,1)_0%,rgba(2,6,23,1)_100%)] relative">
+    // JURUS PAMUNGKAS: "absolute inset-0" mengunci kotak ini agar tidak bisa melar melewati ukuran parent-nya.
+    <div className="absolute inset-0 overflow-auto custom-scrollbar bg-[radial-gradient(circle_at_center,rgba(15,23,42,1)_0%,rgba(2,6,23,1)_100%)]">
       
-      {/* KOTAK DALAM: Kita paksa minimal lebarnya 800px agar gambar tidak tergencet */}
-      <div className="min-w-[800px] flex flex-col items-center pb-10">
+      {/* KANVAS GAMBAR: Dipaksa ukuran fix 900px, jadi wujudnya seperti peta yang harus digeser (scroll) */}
+      <div className="w-[900px] lg:w-full min-h-full p-4 md:p-10 mx-auto flex flex-col items-center pb-10">
           
           {/* Legend & Title */}
-          <div className="w-full max-w-5xl flex justify-between items-center mb-16 px-4">
+          <div className="w-full flex justify-between items-center mb-16 px-4">
             <div className="space-y-1">
                 <h3 className="text-xl font-black text-white tracking-tighter uppercase">Wiring Schematic</h3>
                 <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Visual Guide</p>
@@ -106,7 +99,7 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
             </div>
           </div>
 
-          <div className="w-full max-w-6xl flex justify-between items-start gap-10 relative">
+          <div className="w-full flex justify-between items-start gap-10 relative">
             
             {/* Kolom Sensor (Kiri) */}
             <div className="flex-1 flex flex-col gap-12 items-center">
@@ -116,7 +109,7 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
             </div>
 
             {/* Kolom Central Board (Tengah) */}
-            <div className="flex-1 flex justify-center sticky top-0 py-10">
+            <div className="flex-[1.5] flex justify-center sticky top-0 py-10">
                 <div className="relative group">
                     <div className="absolute -inset-10 bg-cyan-500/10 rounded-full blur-[80px] group-hover:bg-cyan-500/20 transition-all"></div>
                     <div className="bg-[#1e293b] border-[6px] border-[#334155] rounded-[3rem] p-10 w-64 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative z-10 overflow-hidden">
@@ -146,21 +139,6 @@ export default function WiringViewer({ sensors, actuators, board, usedPins }: Wi
             </div>
 
           </div>
-
-          {/* Ground & Power Rail */}
-          <div className="mt-20 w-full max-w-4xl bg-slate-900/50 border border-white/5 rounded-3xl p-6 relative overflow-hidden">
-            <div className="flex justify-around items-center">
-                <div className="text-center w-1/3">
-                    <div className="w-full h-1 bg-red-500/30 rounded mb-2"></div>
-                    <p className="text-[9px] font-black text-red-400 uppercase tracking-widest">VCC Rail</p>
-                </div>
-                <div className="text-center w-1/3">
-                    <div className="w-full h-1 bg-slate-600 rounded mb-2"></div>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">GND Rail</p>
-                </div>
-            </div>
-          </div>
-          
       </div>
     </div>
   );

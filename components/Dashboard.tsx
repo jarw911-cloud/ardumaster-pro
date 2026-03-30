@@ -16,7 +16,6 @@ import ElementCard from '@/components/ElementCard';
 import ExplanationViewer from '@/components/ExplanationViewer';
 
 export default function Dashboard({ username }: { username: string }) {
-  // --- STATE UTAMA ---
   const [board, setBoard] = useState("Arduino Uno R3");
   const [elements, setElements] = useState<any[]>([]);
   const [projectName, setProjectName] = useState("Proyek Micromice Kang Mas");
@@ -29,13 +28,9 @@ export default function Dashboard({ username }: { username: string }) {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // =========================================
-  // 1. LISTENER PERINTAH DARI NAVBAR (page.tsx)
-  // =========================================
   useEffect(() => {
     const handleAction = (e: any) => {
       const { type, data } = e.detail;
-
       switch (type) {
         case 'new':
           if(window.confirm("Buat proyek baru? Workspace saat ini akan dibersihkan.")) {
@@ -43,37 +38,21 @@ export default function Dashboard({ username }: { username: string }) {
             setProjectName("Proyek Baru");
           }
           break;
-        case 'openCloud':
-          fetchProjectList();
-          break;
-        case 'saveCloud':
-          saveToCloud();
-          break;
-        case 'importLocal':
-          fileInputRef.current?.click();
-          break;
-        case 'exportLocal':
-          handleExportLocal();
-          break;
+        case 'openCloud': fetchProjectList(); break;
+        case 'saveCloud': saveToCloud(); break;
+        case 'importLocal': fileInputRef.current?.click(); break;
+        case 'exportLocal': handleExportLocal(); break;
         case 'loadSpecific':
           setBoard(data.board || "Arduino Uno R3");
           setProjectName(data.name);
-          const elementsWithNewIds = data.elements.map((el: any) => ({
-            ...el,
-            id: Date.now() + Math.random()
-          }));
+          const elementsWithNewIds = data.elements.map((el: any) => ({ ...el, id: Date.now() + Math.random() }));
           setElements(elementsWithNewIds);
           break;
       }
     };
-
     window.addEventListener('dashboardAction', handleAction);
     return () => window.removeEventListener('dashboardAction', handleAction);
   }, [elements, projectName, board]);
-
-  // =========================================
-  // 2. CORE LOGIC & SYNC
-  // =========================================
 
   useEffect(() => {
     if (elements.length === 0) return;
@@ -102,10 +81,7 @@ export default function Dashboard({ username }: { username: string }) {
   const handleExportLocal = () => {
     const data = { projectName, board, elements };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${projectName.replace(/\s+/g, '_')}.ardumaster`;
-    a.click();
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${projectName.replace(/\s+/g, '_')}.ardumaster`; a.click();
   };
 
   const handleImportLocal = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,9 +92,7 @@ export default function Dashboard({ username }: { username: string }) {
         try {
             const parsed = JSON.parse(ev.target?.result as string);
             if (parsed.elements) {
-                setElements(parsed.elements);
-                setProjectName(parsed.projectName || "Imported Project");
-                setBoard(parsed.board || "Arduino Uno R3");
+                setElements(parsed.elements); setProjectName(parsed.projectName || "Imported Project"); setBoard(parsed.board || "Arduino Uno R3");
                 alert("File berhasil dimuat!");
             }
         } catch (err) { alert("Format file salah!"); }
@@ -176,9 +150,6 @@ export default function Dashboard({ username }: { username: string }) {
     setElements([...elements, newEl]);
   };
 
-  // =========================================
-  // 3. RENDER WORKSPACE
-  // =========================================
   return (
     <div className="w-full animate-in fade-in duration-500">
       <input type="file" accept=".ardumaster,.json" ref={fileInputRef} onChange={handleImportLocal} className="hidden" />
@@ -211,7 +182,6 @@ export default function Dashboard({ username }: { username: string }) {
                 </select>
             </div>
 
-            {/* BUTTON BAR - PERBAIKAN RESPONSIVE DI SINI */}
             <div className="flex flex-wrap gap-2 mb-8 w-full">
                {[
                  { k: 'Sensor', i: <Thermometer size={14}/>, c: 'text-cyan-500' },
@@ -231,7 +201,6 @@ export default function Dashboard({ username }: { username: string }) {
                ))}
             </div>
 
-            {/* CARDS LIST */}
             <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
               {elements.length === 0 && (
                 <div className="py-20 flex flex-col items-center opacity-20 select-none">
@@ -257,11 +226,11 @@ export default function Dashboard({ username }: { username: string }) {
           </div>
         </div>
 
-        {/* KOLOM KANAN: VIEWERS */}
-        <div className="lg:col-span-7 flex flex-col h-[850px] sticky top-28 mt-8 lg:mt-0">
+        {/* KOLOM KANAN: VIEWERS (SUDAH DI PERBAIKI AGAR BISA SCROLL) */}
+        {/* h-[80vh] min-h-[500px] membuat ukurannya pas di layar HP dan tidak kebesaran */}
+        <div className="lg:col-span-7 flex flex-col h-[80vh] min-h-[500px] lg:h-[850px] lg:sticky lg:top-28 mt-8 lg:mt-0 pb-10">
           <div className="bg-slate-900 rounded-[2rem] sm:rounded-[3.5rem] border border-white/5 overflow-hidden flex flex-col h-full shadow-2xl relative">
             
-            {/* TAB SELECTOR - PERBAIKAN RESPONSIVE DI SINI */}
             <div className="bg-white/5 p-4 sm:px-8 sm:py-6 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-white/5 z-20">
               <div className="flex flex-wrap justify-center bg-black/50 p-1.5 rounded-2xl border border-white/5 w-full sm:w-auto">
                  {[
@@ -297,12 +266,13 @@ export default function Dashboard({ username }: { username: string }) {
               )}
             </div>
 
-            {/* VIEWER CONTENT */}
-            <div className="flex-1 overflow-hidden relative bg-black/20">
+            {/* VIEWER CONTENT (INI KUNCI SCROLL KE BAWAH: overflow-y-auto) */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden relative bg-black/20 custom-scrollbar">
                {activeTab === 'code' && <CodeViewer finalCode={finalCode} requiredLibs={requiredLibs} />}
                {activeTab === 'wiring' && <WiringViewer sensors={elements.filter(e => e.kind === 'Sensor')} actuators={elements.filter(e => e.kind === 'Actuator')} board={board} usedPins={usedPins} />}
                {activeTab === 'explanation' && <ExplanationViewer text={explanationText} />}
             </div>
+            
           </div>
         </div>
 
