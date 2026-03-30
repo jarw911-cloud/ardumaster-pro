@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { Zap, ArrowRight, User, Code2, Cpu, Code, LogOut, Mail, Lock } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Zap, ArrowRight, User, Code2, Cpu, Code, LogOut, Mail, Lock, Menu, X, Plus, LayoutTemplate, FolderOpen, UploadCloud, FileUp, FileDown } from 'lucide-react';
 import Dashboard from '@/components/Dashboard';
 import { supabase } from '@/lib/supabase';
 
@@ -15,7 +15,17 @@ export default function App() {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Cek status login saat aplikasi pertama kali dimuat
+  // --- STATE UNTUK HAMBURGER MENU ---
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // Referensi untuk mengirim sinyal/perintah ke komponen Dashboard
+  // Kita menggunakan EventListener kustom agar Navbar bisa "menyuruh" Dashboard
+  const triggerDashboardAction = (action: string) => {
+    const event = new CustomEvent('dashboardAction', { detail: action });
+    window.dispatchEvent(event);
+    setIsMenuOpen(false);
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
@@ -36,18 +46,15 @@ export default function App() {
     setIsLoading(true);
     
     if (isLoginMode) {
-      // Proses Login
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) alert("Gagal Login: " + error.message);
     } else {
-      // Proses Daftar Akun Baru
       const { error } = await supabase.auth.signUp({ email, password });
       if (error) {
         alert("Gagal Daftar: " + error.message);
       } else {
-        // --- INI PERUBAHANNYA KANG MAS ---
         alert("Pendaftaran berhasil! Silakan konfirmasi email Anda.");
-        setIsLoginMode(true); // Opsional: Langsung arahkan kembali ke mode login
+        setIsLoginMode(true);
       }
     }
     setIsLoading(false);
@@ -58,34 +65,97 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#020617] text-slate-400 p-6 lg:p-10 font-sans selection:bg-cyan-500/30 flex flex-col">
+    <div className="min-h-screen bg-[#020617] text-slate-400 font-sans selection:bg-cyan-500/30 flex flex-col relative overflow-x-hidden">
       
-      {/* NAVBAR */}
-      <nav className="h-16 border-b border-white/5 flex flex-wrap items-center justify-between mb-10 gap-4 relative z-50">
-        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setCurrentView('home')}>
-          <div className="w-8 h-8 bg-cyan-600 rounded-lg flex items-center justify-center font-black text-white shadow-lg shadow-cyan-500/20">A</div>
-          <div>
-            <h1 className="text-sm font-black text-white uppercase tracking-tighter leading-none">ARDUMASTER <span className="text-cyan-500">PRO</span></h1>
-            <p className="text-[10px] font-bold text-slate-600 uppercase italic tracking-widest">Kang Mastech Engine</p>
+      {/* =========================================
+          GIANT LOGO OVERLAY (MUNCUL SAAT MENU AKTIF)
+      ========================================= */}
+      {isMenuOpen && (
+        <div 
+          className="fixed inset-0 z-[90] bg-[#020617]/80 backdrop-blur-md flex items-center justify-center animate-in fade-in duration-300" 
+          onClick={() => setIsMenuOpen(false)}
+        >
+          <div className="flex flex-col items-center justify-center opacity-5 pointer-events-none select-none mix-blend-screen">
+             <div className="text-[30vw] font-black text-cyan-500 leading-none drop-shadow-[0_0_100px_rgba(6,182,212,1)]">A</div>
+             <div className="text-[10vw] font-black text-white tracking-widest leading-none mt-4">ARDUMASTER</div>
           </div>
         </div>
+      )}
 
+      {/* =========================================
+          NAVBAR UTAMA (DENGAN HAMBURGER MENU)
+      ========================================= */}
+      <nav className="sticky top-0 h-20 px-6 lg:px-10 bg-[#020617]/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between z-[100] mb-6">
+      
+        <div className="flex items-center gap-4 select-none relative">
+          
+          {/* HAMBURGER MENU BUTTON */}
+          <button 
+             onClick={() => setIsMenuOpen(!isMenuOpen)} 
+             className="p-2 bg-transparent border-none hover:bg-white/10 rounded-xl transition-all cursor-pointer flex items-center justify-center group"
+          >
+              {isMenuOpen ? <X size={28} className="text-cyan-400" /> : <Menu size={28} className="text-slate-400 group-hover:text-cyan-400" />}
+          </button>
+
+          {/* LOGO */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => { setCurrentView('home'); setIsMenuOpen(false); }}>
+            <div className="w-9 h-9 bg-cyan-600 rounded-lg flex items-center justify-center font-black text-xl text-white shadow-lg shadow-cyan-500/20">A</div>
+            <div>
+              <h1 className="text-lg font-black text-white uppercase tracking-tighter leading-none">
+                ARDUMASTER <span className="text-cyan-500">PRO</span>
+              </h1>
+            </div>
+          </div>
+
+          {/* DROPDOWN MENU PANEL (HANYA MUNCUL DI DASHBOARD/LOGIN) */}
+          {isMenuOpen && currentView === 'dashboard' && (
+              <div className="absolute top-16 left-0 w-64 bg-slate-800/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] z-[100] overflow-hidden flex flex-col py-3 animate-in slide-in-from-top-4">
+                  
+                  <button onClick={() => triggerDashboardAction('new')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-white transition-all cursor-pointer">
+                      <Plus size={16} className="text-emerald-400" /> New Blank Project
+                  </button>
+                  <button onClick={() => triggerDashboardAction('template')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-white transition-all cursor-pointer">
+                      <LayoutTemplate size={16} className="text-purple-400" /> New From Template
+                  </button>
+                  
+                  <div className="h-px bg-white/5 my-2 mx-6"></div>
+                  
+                  <button onClick={() => triggerDashboardAction('openCloud')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-white transition-all cursor-pointer">
+                      <FolderOpen size={16} className="text-cyan-400" /> Open Cloud Project
+                  </button>
+                  <button onClick={() => triggerDashboardAction('saveCloud')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-white transition-all cursor-pointer">
+                      <UploadCloud size={16} className="text-cyan-400" /> Save to Cloud
+                  </button>
+
+                  <div className="h-px bg-white/5 my-2 mx-6"></div>
+
+                  <button onClick={() => triggerDashboardAction('importLocal')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-amber-400 transition-all cursor-pointer">
+                      <FileUp size={16} /> Open Local (.json)
+                  </button>
+                  <button onClick={() => triggerDashboardAction('exportLocal')} className="flex items-center gap-4 px-6 py-3.5 hover:bg-white/5 text-left text-xs font-black uppercase text-amber-400 transition-all cursor-pointer">
+                      <FileDown size={16} /> Save Offline (.json)
+                  </button>
+              </div>
+          )}
+        </div>
+
+        {/* RIGHT MENU */}
         <div className="flex items-center gap-6 text-xs font-bold uppercase tracking-wider">
-          <button onClick={() => setCurrentView('home')} className={`${currentView === 'home' ? 'text-cyan-500' : 'text-slate-500 hover:text-white'} transition-colors`}>Home</button>
-          <button onClick={() => setCurrentView('about')} className={`${currentView === 'about' ? 'text-cyan-500' : 'text-slate-500 hover:text-white'} transition-colors`}>About Me</button>
+          <button onClick={() => setCurrentView('home')} className={`${currentView === 'home' ? 'text-cyan-500' : 'text-slate-500 hover:text-white'} transition-colors hidden md:block`}>Home</button>
+          <button onClick={() => setCurrentView('about')} className={`${currentView === 'about' ? 'text-cyan-500' : 'text-slate-500 hover:text-white'} transition-colors hidden md:block`}>About Me</button>
           
           {session ? (
-            <div className="flex items-center gap-4 ml-4 border-l border-white/5 pl-6">
-               <button onClick={() => setCurrentView('dashboard')} className={`${currentView === 'dashboard' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'} flex items-center gap-2 transition-colors`}><Code size={14}/> Dashboard</button>
+            <div className="flex items-center gap-4 ml-4 md:border-l border-white/5 md:pl-6">
+               <button onClick={() => setCurrentView('dashboard')} className={`${currentView === 'dashboard' ? 'text-emerald-400' : 'text-slate-400 hover:text-white'} flex items-center gap-2 transition-colors`}><Code size={14} className="hidden sm:block"/> Dashboard</button>
                <button onClick={handleLogout} className="text-red-500 hover:text-red-400 flex items-center gap-2 transition-colors"><LogOut size={14}/> Keluar</button>
             </div>
           ) : (
-            <button onClick={() => setCurrentView('login')} className="ml-4 bg-cyan-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 hover:bg-cyan-500 transition-all shadow-lg shadow-cyan-500/20"><User size={14}/> Login</button>
+            <button onClick={() => setCurrentView('login')} className="bg-cyan-600 text-white px-5 py-2 rounded-xl flex items-center gap-2 hover:bg-cyan-500 transition-all shadow-lg shadow-cyan-500/20"><User size={14}/> Login</button>
           )}
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto w-full flex-1 flex flex-col">
+      <main className={`max-w-7xl mx-auto w-full flex-1 flex flex-col px-6 lg:px-10 transition-opacity duration-300 ${isMenuOpen && currentView === 'dashboard' ? 'opacity-20 pointer-events-none' : 'opacity-100'}`}>
         
         {/* HALAMAN HOME */}
         {currentView === 'home' && (
@@ -184,12 +254,10 @@ export default function App() {
 
         {/* HALAMAN DASHBOARD */}
         {currentView === 'dashboard' && session && (
-          // Kita melempar email pengguna sebagai "username" agar sinkron dengan database sebelumnya
           <Dashboard username={session.user.email} />
         )}
 
       </main>
-
     </div>
   );
 }

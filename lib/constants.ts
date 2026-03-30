@@ -112,3 +112,46 @@ export const getPinWarning = (board: string, pin: string, type: string) => {
     }
     return null;
 };
+// ==========================================
+// 7. TEMPLATE PROYEK (RESEP KODINGAN)
+// ==========================================
+export const PROJECT_TEMPLATES = [
+  {
+    id: "template_1",
+    name: "🚗 Robot Line Follower",
+    description: "Robot pengikut garis sederhana menggunakan 2 sensor infrared dan motor driver L298N.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 101, kind: "Sensor", type: "Infrared (Line Follower)", name: "ir_kiri", pin: "2" },
+      { id: 102, kind: "Sensor", type: "Infrared (Line Follower)", name: "ir_kanan", pin: "3" },
+      { id: 103, kind: "Actuator", type: "Driver Motor (L298N)", name: "motor_driver", pin: "4", pin2: "5", pin3: "6", pin4: "7", pin5: "8", pin6: "9" },
+      { id: 104, kind: "Logic", name: "logic_maju", source: "val_ir_kiri", operator: "==", threshold: "0", target: "motor_driver", actionTrue: "MAJU", actionFalse: "STOP" }
+      // Catatan: Logika asli line follower lebih kompleks, ini hanya contoh dasar
+    ]
+  },
+  {
+    id: "template_2",
+    name: "🏠 Smart Home (Kipas Otomatis)",
+    description: "Menyalakan kipas (lewat relay) secara otomatis jika suhu ruangan di atas 30 derajat.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 201, kind: "Sensor", type: "Suhu & Kelembaban (DHT11/DHT22)", name: "sensor_suhu", pin: "2" },
+      { id: 202, kind: "Actuator", type: "Relay 5V (1 Channel)", name: "relay_kipas", pin: "8" },
+      { id: 203, kind: "Logic", name: "logic_suhu", source: "val_sensor_suhu", operator: ">", threshold: "30", target: "relay_kipas", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 204, kind: "Utility", type: "Serial Print", name: "print_suhu", value: "Suhu Saat Ini", source: "val_sensor_suhu" },
+      { id: 205, kind: "Utility", type: "Delay", name: "delay_loop", value: "2000" }
+    ]
+  },
+  {
+    id: "template_3",
+    name: "🚨 Alarm Jarak (Parkir Mundur)",
+    description: "Buzzer akan berbunyi jika ada benda mendekat kurang dari 20 cm.",
+    board: "Arduino Uno R3",
+    elements: [
+      { id: 301, kind: "Sensor", type: "Ultrasonik (HC-SR04)", name: "sensor_jarak", pin: "2", pin2: "3" },
+      { id: 302, kind: "Actuator", type: "Buzzer Aktif", name: "buzzer_alarm", pin: "8" },
+      { id: 303, kind: "Logic", name: "logic_jarak", source: "val_sensor_jarak", operator: "<", threshold: "20", target: "buzzer_alarm", actionTrue: "HIGH", actionFalse: "LOW" },
+      { id: 304, kind: "Utility", type: "Delay", name: "delay_baca", value: "500" }
+    ]
+  }
+];
